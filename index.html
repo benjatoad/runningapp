@@ -11,7 +11,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Link to the external plan data file. This will be used when running locally. -->
-    <script src="plan.js"></script>
+    <script>
+        (function() {
+            var script = document.createElement('script');
+            script.src = 'plan.js?' + new Date().getTime();
+            document.head.appendChild(script);
+        })();
+    </script>
 
     <style>
         html { scroll-behavior: smooth; }
