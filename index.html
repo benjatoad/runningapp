@@ -490,7 +490,9 @@
                     const content = this.generateWorkoutDetailContent(dayIndex, weekIndex);
                     detailsContainer.innerHTML = `<div class="p-4 sm:p-6 bg-gray-700 rounded-lg">${content}</div>`;
                     detailsContainer.classList.add('open');
-                    detailsContainer.style.maxHeight = detailsContainer.scrollHeight + 'px';
+                    requestAnimationFrame(() => {
+                        detailsContainer.style.maxHeight = detailsContainer.scrollHeight + 'px';
+                    });
                 },
 
                 generateWorkoutDetailContent(dayIndex, weekIndex) {
