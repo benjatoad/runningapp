@@ -14,26 +14,26 @@ window.trainingPlanData = {
     // New strength workout structure
     strengthWorkouts: {
         'Legs & Core': [
-            { name: 'Goblet Squats', desc: 'Hold a weight at your chest. Squat down keeping your chest up and back straight. Essential for quad and glute strength.', sets: '3-4', reps: '8-12' },
-            { name: 'Romanian Deadlifts', desc: 'Hold a barbell or dumbbells. Hinge at your hips, keeping your back straight and legs almost straight to target hamstrings.', sets: '3-4', reps: '8-12' },
-            { name: 'Walking Lunges', desc: 'Step forward into a lunge, then push off and step into the next lunge. Great for single-leg stability.', sets: '3', reps: '10-12/leg' },
-            { name: 'Plank', desc: 'Hold a push-up position with a flat back and engaged core to build core endurance.', sets: '3', reps: '45-90s' },
-            { name: 'Hanging Knee Raises', desc: 'Hang from a bar and raise your knees towards your chest to strengthen lower abs and hip flexors.', sets: '3', reps: '10-15' },
-            { name: 'Calf Raises', desc: 'Stand on a flat surface and raise your heels up, then lower them back down to build calf power.', sets: '3', reps: '15-20' },
+            { name: 'Dumbbell Goblet Squats', desc: 'Hold one dumbbell vertically at your chest. Squat down keeping your chest up and back straight. Essential for quad and glute strength.', sets: '3-4', reps: '8-12' },
+            { name: 'TRX Hamstring Curls', desc: 'Lie on your back with your heels in the TRX straps. Lift your hips off the ground and pull your heels towards your glutes.', sets: '3', reps: '10-15' },
+            { name: 'Dumbbell Walking Lunges', desc: 'Hold dumbbells at your sides. Step forward into a lunge, then push off to the next lunge. Great for single-leg stability.', sets: '3', reps: '10-12/leg' },
+            { name: 'TRX Pike', desc: 'Start in a plank position with your feet in the TRX straps. Hinge at your hips, lifting them towards the ceiling while keeping your legs straight.', sets: '3', reps: '8-12' },
+            { name: 'Hanging Knee Raises', desc: 'Hang from a pull-up bar and raise your knees towards your chest to strengthen lower abs and hip flexors.', sets: '3', reps: '10-15' },
+            { name: 'Dumbbell Calf Raises', desc: 'Hold dumbbells and stand on a flat surface. Raise your heels up, then lower them back down.', sets: '3', reps: '15-20' },
         ],
         'Upper Push': [
-            { name: 'Push-ups', desc: 'Perform standard push-ups, or modified on your knees. Focus on chest, shoulders, and triceps.', sets: '3-4', reps: 'To failure' },
-            { name: 'Dumbbell Bench Press', desc: 'Lie on a bench and press dumbbells up from your chest. Builds chest and shoulder strength.', sets: '3-4', reps: '8-12' },
-            { name: 'Overhead Press (Dumbbell)', desc: 'Sit or stand, pressing dumbbells from your shoulders to overhead for shoulder development.', sets: '3-4', reps: '8-12' },
-            { name: 'Lateral Raises', desc: 'Stand with dumbbells at your sides. Raise them out to the side to shoulder height to work the side deltoids.', sets: '3', reps: '12-15' },
-            { name: 'Tricep Dips (on bench)', desc: 'Place hands on a bench behind you, lower your body down and push back up.', sets: '3', reps: '10-15' },
+            { name: 'Push-ups', desc: 'Perform standard push-ups, or modified on your knees. The foundation of upper body pushing strength.', sets: '3-4', reps: 'To failure' },
+            { name: 'Dumbbell Overhead Press', desc: 'Sit or stand, pressing dumbbells from your shoulders to overhead for shoulder development.', sets: '3-4', reps: '8-12' },
+            { name: 'TRX Chest Press', desc: 'Lean forward with hands in the TRX handles. Lower your chest towards your hands, then press back up. Adjust your foot position to change difficulty.', sets: '3', reps: '10-15' },
+            { name: 'Dumbbell Lateral Raises', desc: 'Stand with dumbbells at your sides. Raise them out to the side to shoulder height to work the side deltoids.', sets: '3', reps: '12-15' },
+            { name: 'TRX Tricep Press', desc: 'Face away from the anchor point. Lean forward and bend your elbows, lowering your head towards your hands, then extend to straighten.', sets: '3', reps: '10-15' },
         ],
         'Upper Pull': [
-            { name: 'Pull-ups / Assisted Pull-ups', desc: 'Use a wide grip to pull your chin over the bar. Use a band for assistance if needed. The ultimate back builder.', sets: '3-4', reps: 'To failure' },
-            { name: 'Bent Over Rows (Dumbbell)', desc: 'Hinge at the waist with a flat back. Pull dumbbells up towards your lower chest to build a strong back.', sets: '3-4', reps: '8-12' },
-            { name: 'Face Pulls', desc: 'Use a cable machine or resistance band. Pull the rope towards your face, squeezing your rear delts for shoulder health.', sets: '3', reps: '12-15' },
-            { name: 'Bicep Curls (Dumbbell)', desc: 'Stand and curl dumbbells from your thighs up to your shoulders.', sets: '3', reps: '10-15' },
-            { name: 'Reverse Flys', desc: 'Hinge forward with a flat back, arms extended. Open your arms out to the side, squeezing your shoulder blades.', sets: '3', reps: '12-15' },
+            { name: 'Pull-ups / Chin-ups', desc: 'Use a wide grip (pull-ups) or narrow grip (chin-ups) to pull your chin over the bar. The ultimate back builder.', sets: '3-4', reps: 'To failure' },
+            { name: 'TRX Rows', desc: 'Lean back with hands on the TRX handles, body straight. Pull your chest towards the handles, squeezing your back muscles.', sets: '3-4', reps: '10-15' },
+            { name: 'Dumbbell Renegade Rows', desc: 'Start in a high plank position holding dumbbells. Row one dumbbell up to your chest, then the other, keeping your core tight.', sets: '3', reps: '8-10/arm' },
+            { name: 'Dumbbell Bicep Curls', desc: 'Stand and curl dumbbells from your thighs up to your shoulders.', sets: '3', reps: '10-15' },
+            { name: 'TRX Reverse Flys', desc: 'Face the anchor point, lean back slightly with arms extended forward. Open your arms out to the side, keeping them straight.', sets: '3', reps: '12-15' },
         ]
     },
 
@@ -76,6 +76,7 @@ window.trainingPlanData = {
         { name: "Chest Stretch", desc: "Clasp your hands behind your back and gently pull them down and away from your body. Hold for 30 seconds." }
     ]
 };
+
 
 
 
