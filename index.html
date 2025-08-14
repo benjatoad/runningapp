@@ -3,24 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive 8-Week Running & Strength Plan</title>
+    <title>Enhanced 8-Week Running & Strength Plan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Warm Neutrals -->
-    <!-- Application Structure Plan: A week-based carousel is the primary navigation. Each slide is a self-contained weekly dashboard showing goals and the daily schedule. This consolidates information, creating a focused, step-by-step user flow. Workout details are now in a full-width accordion/dropdown below the weekly grid for better readability. -->
-    <!-- Visualization & Content Choices: 1. Carousel: For week-to-week navigation. 2. Full-Width Accordion: Replaces the inline dropdown. Clicking a day expands its details in a shared container below the 7-day grid. The active day is highlighted. 3. Workout Logging: Added a "Mark as Complete" checkbox, metric inputs, and a notes field to each workout detail view. Data is saved to localStorage. 4. Progress Indicator: Completed days now have a green background. Weekly and total progress bars have been added. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    
     <style>
-        html {
-            scroll-behavior: smooth;
-        }
+        html { scroll-behavior: smooth; }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #111827;
-            color: #D1D5DB;
+            background-color: #111827; /* gray-900 */
+            color: #D1D5DB; /* gray-300 */
         }
         .carousel-container {
             overflow: hidden;
@@ -28,18 +23,29 @@
         }
         .carousel-track {
             display: flex;
-            transition: transform 0.5s ease-in-out;
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Bouncy transition */
         }
         .carousel-slide {
             min-width: 100%;
             box-sizing: border-box;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+        .carousel-slide.active {
+            opacity: 1;
+            transform: scale(1);
         }
         .full-width-details {
-            transition: max-height 0.5s ease-in-out;
+            transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
+            max-height: 0;
+            overflow: hidden;
         }
         .day-header.active-day {
             background-color: #fbbf24; /* amber-400 */
             color: #111827;
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
         .day-header.active-day h4, .day-header.active-day p {
             color: #1f2937; /* gray-800 */
@@ -47,6 +53,21 @@
         .progress-bar {
             transition: width 0.5s ease-in-out;
         }
+        /* Modal styles */
+        .modal-backdrop {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        /* Tab styles */
+        .tab-btn.active {
+            border-color: #fbbf24; /* amber-400 */
+            color: #fbbf24;
+        }
+        /* Hide scrollbar but allow scrolling */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="antialiased">
@@ -62,250 +83,402 @@
                 </div>
                 <p id="total-progress-text" class="text-sm text-gray-400 mt-1 text-right">Overall Progress: 0%</p>
             </div>
+             <div class="absolute top-0 right-0">
+                <button id="reset-btn" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition-colors text-sm">Reset Progress</button>
+            </div>
         </header>
 
         <main>
-            <!-- Weekly Carousel Section -->
-            <section id="carousel-section" class="mb-8 md:mb-12 bg-gray-800 p-6 rounded-xl shadow-sm">
-                <div class="carousel-container">
-                    <div id="carousel-track" class="carousel-track">
-                        <!-- Carousel slides will be populated by JS -->
-                    </div>
-                </div>
-                <div class="flex justify-between items-center mt-6">
-                    <button id="prev-btn" class="bg-amber-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-700 transition-colors disabled:bg-gray-600">
-                        &#8592; Prev
+            <!-- Tabs for Plan and Progress -->
+            <div class="mb-6 border-b border-gray-700">
+                <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                    <button id="tab-plan" class="tab-btn active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg">
+                        Workout Plan
                     </button>
-                    <div id="carousel-dots" class="flex space-x-2">
-                        <!-- Dots will be populated by JS -->
-                    </div>
-                    <button id="next-btn" class="bg-amber-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-700 transition-colors disabled:bg-gray-600">
-                        Next &#8594;
+                    <button id="tab-progress" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500 font-medium text-lg">
+                        My Progress
                     </button>
-                </div>
-            </section>
+                </nav>
+            </div>
 
+            <!-- Main Content Area -->
+            <div id="tab-content-plan">
+                <!-- Weekly Carousel Section -->
+                <section id="carousel-section" class="mb-8 md:mb-12 bg-gray-800 p-4 sm:p-6 rounded-xl shadow-lg">
+                    <div class="carousel-container">
+                        <div id="carousel-track" class="carousel-track">
+                            <!-- Carousel slides will be populated by JS -->
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mt-6">
+                        <button id="prev-btn" aria-label="Previous Week" class="bg-amber-600 text-white font-bold p-3 rounded-full hover:bg-amber-700 transition-colors disabled:bg-gray-600 disabled:opacity-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                        </button>
+                        <div id="carousel-dots" class="flex space-x-2">
+                            <!-- Dots will be populated by JS -->
+                        </div>
+                        <button id="next-btn" aria-label="Next Week" class="bg-amber-600 text-white font-bold p-3 rounded-full hover:bg-amber-700 transition-colors disabled:bg-gray-600 disabled:opacity-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <div id="tab-content-progress" class="hidden">
+                 <div class="bg-gray-800 p-4 sm:p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-bold text-amber-400 mb-4 text-center">Run Distance Progress</h2>
+                    <canvas id="progress-chart"></canvas>
+                </div>
+            </div>
         </main>
     </div>
 
-    <script>
+    <!-- Welcome Modal -->
+    <div id="welcome-modal" class="modal-backdrop fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="modal-content bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full p-8 text-center transform scale-95 opacity-0">
+            <h2 class="text-3xl font-bold text-amber-400 mb-4">Welcome to Your Training Plan!</h2>
+            <p class="text-gray-300 mb-6">This is an interactive 8-week plan. Navigate through the weeks, click on a day to see the workout, and log your progress to track your journey.</p>
+            <button id="close-welcome-modal" class="bg-amber-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-700 transition-transform hover:scale-105">Let's Go!</button>
+        </div>
+    </div>
+
+    <!-- Reset Confirmation Modal -->
+    <div id="reset-modal" class="modal-backdrop fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="modal-content bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-8 transform scale-95 opacity-0">
+            <h2 class="text-2xl font-bold text-red-500 mb-4">Are you sure?</h2>
+            <p class="text-gray-300 mb-8">This will permanently delete all your logged workouts and reset your progress. This action cannot be undone.</p>
+            <div class="flex justify-end space-x-4">
+                <button id="cancel-reset-btn" class="bg-gray-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-gray-700 transition-colors">Cancel</button>
+                <button id="confirm-reset-btn" class="bg-red-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-red-700 transition-colors">Yes, Reset</button>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        // Firebase Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         document.addEventListener('DOMContentLoaded', () => {
-            const planData = {
-                paceGuide: {
-                    labels: ['Easy Run', 'Tempo Run', 'Interval (400m)', 'Long Run'],
-                    displayPace: ['11:00-12:00', '9:30-10:00', '2:00-2:05/lap', '11:30-12:30']
-                },
-                strengthWorkouts: {
-                    'A': [
-                        { name: 'Goblet Squats', desc: 'Hold a weight at your chest. Squat down keeping your chest up and back straight.', sets: '2-3', reps: '10-15' },
-                        { name: 'Walking Lunges', desc: 'Step forward into a lunge, then push off and step into the next lunge with the other leg.', sets: '2-3', reps: '10-15/leg' },
-                        { name: 'Glute Bridges', desc: 'Lie on your back, knees bent. Lift hips until your body is in a straight line from shoulders to knees.', sets: '2-3', reps: '10-15' },
-                        { name: 'Plank', desc: 'Hold a push-up position with a flat back and engaged core.', sets: '2-3', reps: '30-60s' },
-                        { name: 'Calf Raises', desc: 'Stand on a flat surface and raise your heels up, then lower them back down.', sets: '2-3', reps: '10-15' },
-                    ],
-                    'B': [
-                        { name: 'Single-Leg Deadlifts', desc: 'Stand on one leg, hinge at your hips, extending the other leg straight behind you.', sets: '2-3', reps: '10-15/leg' },
-                        { name: 'Step-Ups', desc: 'Use a bench or sturdy chair. Step up with one foot, then the other. Alternate lead leg.', sets: '2-3', reps: '10-15/leg' },
-                        { name: 'Push-ups', desc: 'Perform standard push-ups, or modified on your knees if needed.', sets: '2-3', reps: '10-15' },
-                        { name: 'Dumbbell Rows', desc: 'Lean on a bench. Pull a dumbbell up towards your chest, keeping your elbow close.', sets: '2-3', reps: '10-15/arm' },
-                        { name: 'Russian Twists', desc: 'Sit with knees bent, feet off the ground. Twist your torso from side to side.', sets: '2-3', reps: '10-15/side' },
+            // --- App State and Configuration ---
+            const App = {
+                // Firebase and User State
+                db: null,
+                auth: null,
+                userId: null,
+                appId: null, // <-- Added appId
+                isAuthReady: false,
+                workoutLogUnsubscribe: null,
+
+                // UI State
+                currentWeekIndex: 0,
+                activeChart: null,
+
+                // Data
+                workoutLogs: {},
+                planData: {
+                    paceGuide: {
+                        labels: ['Easy Run', 'Tempo Run', 'Interval (400m)', 'Long Run'],
+                        displayPace: ['11:00-12:00', '9:30-10:00', '2:00-2:05/lap', '11:30-12:30']
+                    },
+                    strengthWorkouts: {
+                        'A': [
+                            { name: 'Goblet Squats', desc: 'Hold a weight at your chest. Squat down keeping your chest up and back straight.', sets: '2-3', reps: '10-15' },
+                            { name: 'Walking Lunges', desc: 'Step forward into a lunge, then push off and step into the next lunge with the other leg.', sets: '2-3', reps: '10-15/leg' },
+                            { name: 'Glute Bridges', desc: 'Lie on your back, knees bent. Lift hips until your body is in a straight line from shoulders to knees.', sets: '2-3', reps: '10-15' },
+                            { name: 'Plank', desc: 'Hold a push-up position with a flat back and engaged core.', sets: '2-3', reps: '30-60s' },
+                            { name: 'Calf Raises', desc: 'Stand on a flat surface and raise your heels up, then lower them back down.', sets: '2-3', reps: '10-15' },
+                        ],
+                        'B': [
+                            { name: 'Single-Leg Deadlifts', desc: 'Stand on one leg, hinge at your hips, extending the other leg straight behind you.', sets: '2-3', reps: '10-15/leg' },
+                            { name: 'Step-Ups', desc: 'Use a bench or sturdy chair. Step up with one foot, then the other. Alternate lead leg.', sets: '2-3', reps: '10-15/leg' },
+                            { name: 'Push-ups', desc: 'Perform standard push-ups, or modified on your knees if needed.', sets: '2-3', reps: '10-15' },
+                            { name: 'Dumbbell Rows', desc: 'Lean on a bench. Pull a dumbbell up towards your chest, keeping your elbow close.', sets: '2-3', reps: '10-15/arm' },
+                            { name: 'Russian Twists', desc: 'Sit with knees bent, feet off the ground. Twist your torso from side to side.', sets: '2-3', reps: '10-15/side' },
+                        ]
+                    },
+                    weeklyPlan: [
+                        { intervalReps: 6, tempoMins: 20, longRunDist: 3.5 }, { intervalReps: 7, tempoMins: 25, longRunDist: 4.0 },
+                        { intervalReps: 8, tempoMins: 30, longRunDist: 4.5 }, { intervalReps: 9, tempoMins: 35, longRunDist: 5.0 },
+                        { intervalReps: 10, tempoMins: 40, longRunDist: 5.5 }, { intervalReps: 11, tempoMins: 40, longRunDist: 6.0 },
+                        { intervalReps: 12, tempoMins: 30, longRunDist: 6.5 }, { intervalReps: 8, tempoMins: 20, longRunDist: 7.0 },
                     ]
                 },
-                weeklyPlan: [
-                    { intervalReps: 6, tempoMins: 20, longRunDist: 3.5 },
-                    { intervalReps: 7, tempoMins: 25, longRunDist: 4.0 },
-                    { intervalReps: 8, tempoMins: 30, longRunDist: 4.5 },
-                    { intervalReps: 9, tempoMins: 35, longRunDist: 5.0 },
-                    { intervalReps: 10, tempoMins: 40, longRunDist: 5.5 },
-                    { intervalReps: 11, tempoMins: 40, longRunDist: 6.0 },
-                    { intervalReps: 12, tempoMins: 30, longRunDist: 6.5 },
-                    { intervalReps: 8, tempoMins: 20, longRunDist: 7.0 },
-                ]
-            };
+                daysOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                workoutTypes: ['Interval Run', 'Strength A', 'Tempo Run', 'Strength B', 'Rest', 'Long Run', 'Rest'],
 
-            const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-            const workoutTypes = ['Interval Run', 'Strength A', 'Tempo Run', 'Strength B', 'Rest', 'Long Run', 'Rest'];
-            const totalWeeks = planData.weeklyPlan.length;
-            const totalWorkouts = totalWeeks * daysOfWeek.length;
+                // --- DOM Elements ---
+                getDOMElements() {
+                    this.dom = {
+                        carouselTrack: document.getElementById('carousel-track'),
+                        dotsContainer: document.getElementById('carousel-dots'),
+                        prevBtn: document.getElementById('prev-btn'),
+                        nextBtn: document.getElementById('next-btn'),
+                        totalProgressBar: document.getElementById('total-progress-bar'),
+                        totalProgressText: document.getElementById('total-progress-text'),
+                        // Tabs
+                        tabPlan: document.getElementById('tab-plan'),
+                        tabProgress: document.getElementById('tab-progress'),
+                        contentPlan: document.getElementById('tab-content-plan'),
+                        contentProgress: document.getElementById('tab-content-progress'),
+                        // Modals
+                        welcomeModal: document.getElementById('welcome-modal'),
+                        closeWelcomeModal: document.getElementById('close-welcome-modal'),
+                        resetModal: document.getElementById('reset-modal'),
+                        resetBtn: document.getElementById('reset-btn'),
+                        cancelResetBtn: document.getElementById('cancel-reset-btn'),
+                        confirmResetBtn: document.getElementById('confirm-reset-btn'),
+                    };
+                },
 
-            const carouselTrack = document.getElementById('carousel-track');
-            const dotsContainer = document.getElementById('carousel-dots');
-            const prevBtn = document.getElementById('prev-btn');
-            const nextBtn = document.getElementById('next-btn');
-            const totalProgressBar = document.getElementById('total-progress-bar');
-            const totalProgressText = document.getElementById('total-progress-text');
-            
-            let currentWeekIndex = 0;
-            let workoutLogs = JSON.parse(localStorage.getItem('workoutLogs')) || {};
+                // --- Initialization ---
+                init() {
+                    this.getDOMElements();
+                    this.initFirebase();
+                    this.addEventListeners();
+                    this.showWelcomeModalIfNeeded();
+                },
 
-            function saveLogs() {
-                localStorage.setItem('workoutLogs', JSON.stringify(workoutLogs));
-            }
-
-            function updateProgress() {
-                const completedCount = Object.values(workoutLogs).filter(log => log.completed).length;
-                const totalPercentage = (completedCount / totalWorkouts) * 100;
-                totalProgressBar.style.width = `${totalPercentage}%`;
-                totalProgressText.textContent = `Overall Progress: ${Math.round(totalPercentage)}%`;
-            }
-
-            function renderCarousel() {
-                carouselTrack.innerHTML = '';
-                dotsContainer.innerHTML = '';
-
-                planData.weeklyPlan.forEach((weekData, index) => {
-                    const slide = document.createElement('div');
-                    slide.className = 'carousel-slide p-2';
-
-                    let completedInWeek = 0;
-                    for (let i = 0; i < daysOfWeek.length; i++) {
-                        if (workoutLogs[`${index}-${i}`] && workoutLogs[`${index}-${i}`].completed) {
-                            completedInWeek++;
-                        }
-                    }
-                    const weeklyPercentage = (completedInWeek / daysOfWeek.length) * 100;
-
-                    slide.innerHTML = `
-                        <h2 class="text-2xl font-bold text-amber-400 mb-2 text-center">Week ${index + 1}</h2>
-                        <div class="w-full bg-gray-600 rounded-full h-2 mb-4">
-                            <div class="bg-green-500 h-2 rounded-full progress-bar" style="width: ${weeklyPercentage}%"></div>
-                        </div>
-                        <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                            <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Intervals</p><p class="font-bold text-xl text-gray-100">${weekData.intervalReps} x 400m</p></div>
-                            <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Tempo</p><p class="font-bold text-xl text-gray-100">${weekData.tempoMins} mins</p></div>
-                            <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Long Run</p><p class="font-bold text-xl text-gray-100">${weekData.longRunDist} miles</p></div>
-                            <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Strength</p><p class="font-bold text-xl text-gray-100">2 sessions</p></div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
-                            ${daysOfWeek.map((day, dayIndex) => {
-                                const workoutType = workoutTypes[dayIndex];
-                                const isRest = workoutType === 'Rest';
-                                const logKey = `${index}-${dayIndex}`;
-                                const isCompleted = workoutLogs[logKey] && workoutLogs[logKey].completed;
-                                let bgColor = isRest ? 'bg-gray-700' : 'bg-gray-700/50';
-                                if (isCompleted) {
-                                    bgColor = 'bg-green-600 hover:bg-green-700';
+                initFirebase() {
+                    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "DEMO", authDomain: "DEMO", projectId: "DEMO" };
+                    this.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    const app = initializeApp(firebaseConfig);
+                    this.db = getFirestore(app);
+                    this.auth = getAuth(app);
+                    
+                    onAuthStateChanged(this.auth, async (user) => {
+                        if (user) {
+                            this.userId = user.uid;
+                            this.isAuthReady = true;
+                            this.setupWorkoutLogListener();
+                        } else {
+                           try {
+                                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                    await signInWithCustomToken(this.auth, __initial_auth_token);
+                                } else {
+                                    await signInAnonymously(this.auth);
                                 }
-                                return `
-                                <div class="day-header p-4 rounded-lg shadow-sm cursor-pointer transition-colors hover:bg-gray-600/50 ${bgColor} flex flex-col justify-center text-center min-h-[110px] gap-1" data-day-index="${dayIndex}" data-week-index="${index}">
-                                    <p class="font-bold ${isCompleted ? 'text-gray-200' : 'text-gray-400'} text-sm">${day.toUpperCase()}</p>
-                                    <h4 class="text-xl font-semibold ${isCompleted ? 'text-white' : (isRest ? 'text-gray-400' : 'text-amber-400')}">${workoutType}</h4>
-                                </div>`;
-                            }).join('')}
-                        </div>
-                        <div id="details-container-week-${index}" class="full-width-details max-h-0 overflow-hidden mt-4">
-                            <!-- JS will inject content here -->
-                        </div>
-                    `;
-                    carouselTrack.appendChild(slide);
+                            } catch (error) {
+                                console.error("Authentication failed:", error);
+                            }
+                        }
+                    });
+                },
 
-                    const dot = document.createElement('button');
-                    dot.className = 'w-3 h-3 rounded-full transition-colors';
-                    dot.dataset.index = index;
-                    dotsContainer.appendChild(dot);
-                });
-            }
+                setupWorkoutLogListener() {
+                    if (this.workoutLogUnsubscribe) this.workoutLogUnsubscribe(); // Detach old listener
+                    
+                    // Corrected Firestore path
+                    const docRef = doc(this.db, `artifacts/${this.appId}/users/${this.userId}/workoutLogs/logs`);
+                    this.workoutLogUnsubscribe = onSnapshot(docRef, (docSnap) => {
+                        if (docSnap.exists()) {
+                            this.workoutLogs = docSnap.data();
+                        } else {
+                            this.workoutLogs = {};
+                        }
+                        this.render();
+                    }, (error) => {
+                        console.error("Error listening to workout logs:", error);
+                    });
+                },
 
-            function updateCarousel() {
-                if (carouselTrack.querySelector('.carousel-slide')) {
-                    const slideWidth = carouselTrack.querySelector('.carousel-slide').clientWidth;
-                    carouselTrack.style.transform = `translateX(-${currentWeekIndex * slideWidth}px)`;
-                }
+                // --- Event Listeners ---
+                addEventListeners() {
+                    this.dom.prevBtn.addEventListener('click', () => this.changeWeek(-1));
+                    this.dom.nextBtn.addEventListener('click', () => this.changeWeek(1));
+                    this.dom.dotsContainer.addEventListener('click', (e) => {
+                        if(e.target.tagName === 'BUTTON') {
+                            this.currentWeekIndex = parseInt(e.target.dataset.index);
+                            this.updateCarousel();
+                        }
+                    });
+                    this.dom.carouselTrack.addEventListener('click', (e) => this.handleCarouselClick(e));
+                    window.addEventListener('resize', () => this.updateCarousel());
 
-                const dots = dotsContainer.querySelectorAll('button');
-                dots.forEach((dot, index) => {
-                    dot.className = `w-3 h-3 rounded-full transition-colors ${index === currentWeekIndex ? 'bg-amber-400' : 'bg-gray-600'}`;
-                });
+                    // Tabs
+                    this.dom.tabPlan.addEventListener('click', () => this.switchTab('plan'));
+                    this.dom.tabProgress.addEventListener('click', () => this.switchTab('progress'));
 
-                prevBtn.disabled = currentWeekIndex === 0;
-                nextBtn.disabled = currentWeekIndex === totalWeeks - 1;
-            }
+                    // Modals
+                    this.dom.closeWelcomeModal.addEventListener('click', () => this.toggleModal('welcome-modal', false));
+                    this.dom.resetBtn.addEventListener('click', () => this.toggleModal('reset-modal', true));
+                    this.dom.cancelResetBtn.addEventListener('click', () => this.toggleModal('reset-modal', false));
+                    this.dom.confirmResetBtn.addEventListener('click', () => this.resetProgress());
+                },
 
-            function generateWorkoutDetailContent(dayIndex, weekIndex) {
-                const workoutType = workoutTypes[dayIndex];
-                const weekData = planData.weeklyPlan[weekIndex];
-                const logKey = `${weekIndex}-${dayIndex}`;
-                const log = workoutLogs[logKey] || {};
-                let content = '';
-                let logInputs = '';
-
-                if (workoutType.includes('Run')) {
-                    logInputs = `
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label for="log-dist-${logKey}" class="block text-sm font-medium text-gray-300">Distance (mi)</label>
-                                <input type="number" id="log-dist-${logKey}" value="${log.distance || ''}" class="mt-1 block w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2">
-                            </div>
-                            <div>
-                                <label for="log-time-${logKey}" class="block text-sm font-medium text-gray-300">Time (mm:ss)</label>
-                                <input type="text" id="log-time-${logKey}" value="${log.time || ''}" class="mt-1 block w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2">
-                            </div>
-                        </div>
-                    `;
-                }
+                // --- Rendering and UI Updates ---
+                render() {
+                    this.renderCarousel();
+                    this.updateCarousel();
+                    this.updateProgress();
+                    this.renderProgressChart();
+                },
                 
-                if (workoutType === 'Interval Run') {
-                    content = `<div class="space-y-3"><div><strong class="text-gray-200">Warm-up:</strong> 10-15 minutes of easy jogging.</div><div><strong class="text-gray-200">Workout:</strong> ${weekData.intervalReps} x 400 meters at goal 5k pace.</div><div><strong class="text-gray-200">Target Pace:</strong> ${planData.paceGuide.displayPace[2]}.</div><div><strong class="text-gray-200">Recovery:</strong> 400 meters of slow jogging or walking between each interval.</div><div><strong class="text-gray-200">Cool-down:</strong> 10-15 minutes of easy jogging.</div></div>`;
-                } else if (workoutType === 'Tempo Run') {
-                     content = `<div class="space-y-3"><div><strong class="text-gray-200">Warm-up:</strong> 10 minutes of easy jogging.</div><div><strong class="text-gray-200">Workout:</strong> Run for ${weekData.tempoMins} minutes at a tempo pace.</div><div><strong class="text-gray-200">Target Pace:</strong> ${planData.paceGuide.displayPace[1]} min/mile. Should feel "comfortably hard".</div><div><strong class="text-gray-200">Cool-down:</strong> 10 minutes of easy jogging.</div></div>`;
-                } else if (workoutType === 'Long Run') {
-                     content = `<div class="space-y-3"><div><strong class="text-gray-200">Workout:</strong> Run for ${weekData.longRunDist} miles.</div><div><strong class="text-gray-200">Target Pace:</strong> ${planData.paceGuide.displayPace[0]} or ${planData.paceGuide.displayPace[3]} min/mile. Keep it easy and conversational.</div><div><strong class="text-gray-200">Purpose:</strong> Build endurance. The goal is to cover the distance, not to run it fast.</div></div>`;
-                } else if (workoutType.startsWith('Strength')) {
-                    const type = workoutType.endsWith('A') ? 'A' : 'B';
-                    const exercises = planData.strengthWorkouts[type];
-                    content = `<ul class="divide-y divide-gray-700">${exercises.map(ex => `<li class="flex justify-between items-center py-4"><div class="flex-grow pr-4"><strong class="block text-base font-medium text-gray-100">${ex.name}</strong><p class="text-sm text-gray-400">${ex.desc}</p></div><div class="text-right flex-shrink-0 w-24"><p class="text-base font-semibold text-amber-400">${ex.sets} sets</p><p class="text-sm text-gray-400">${ex.reps} reps</p></div></li>`).join('')}</ul>`;
-                } else {
-                    content = `<p>Rest is crucial for recovery and muscle repair. You can do some light activity like walking or stretching, but avoid strenuous exercise.</p>`;
-                }
+                renderCarousel() {
+                    this.dom.carouselTrack.innerHTML = '';
+                    this.dom.dotsContainer.innerHTML = '';
 
+                    this.planData.weeklyPlan.forEach((weekData, index) => {
+                        const slide = document.createElement('div');
+                        slide.className = 'carousel-slide p-2';
+                        slide.dataset.weekIndex = index;
 
-                return `
-                    <div class="workout-description">${content}</div>
-                    <div class="log-section mt-6 pt-6 border-t border-gray-600">
-                        <h5 class="text-lg font-bold text-gray-100 mb-4">Log Your Workout</h5>
-                        <div class="space-y-4">
-                            <div class="flex items-center">
-                                <input id="log-completed-${logKey}" type="checkbox" ${log.completed ? 'checked' : ''} class="h-5 w-5 rounded border-gray-500 text-amber-600 focus:ring-amber-500">
-                                <label for="log-completed-${logKey}" class="ml-3 block text-sm font-medium text-gray-200">Mark as Complete</label>
+                        let completedInWeek = 0;
+                        for (let i = 0; i < this.daysOfWeek.length; i++) {
+                            if (this.workoutLogs[`${index}-${i}`] && this.workoutLogs[`${index}-${i}`].completed) {
+                                completedInWeek++;
+                            }
+                        }
+                        const weeklyPercentage = (completedInWeek / this.daysOfWeek.length) * 100;
+
+                        slide.innerHTML = `
+                            <h2 class="text-2xl font-bold text-amber-400 mb-2 text-center">Week ${index + 1}</h2>
+                            <div class="w-full bg-gray-600 rounded-full h-2 mb-4"><div class="bg-green-500 h-2 rounded-full progress-bar" style="width: ${weeklyPercentage}%"></div></div>
+                            <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Intervals</p><p class="font-bold text-xl text-gray-100">${weekData.intervalReps} x 400m</p></div>
+                                <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Tempo</p><p class="font-bold text-xl text-gray-100">${weekData.tempoMins} mins</p></div>
+                                <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Long Run</p><p class="font-bold text-xl text-gray-100">${weekData.longRunDist} miles</p></div>
+                                <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Strength</p><p class="font-bold text-xl text-gray-100">2 sessions</p></div>
                             </div>
-                            ${logInputs}
-                            <div>
-                                <label for="log-notes-${logKey}" class="block text-sm font-medium text-gray-300">Notes</label>
-                                <textarea id="log-notes-${logKey}" rows="3" class="mt-1 block w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2">${log.notes || ''}</textarea>
+                            <div class="grid grid-cols-1 md:grid-cols-7 gap-2">
+                                ${this.daysOfWeek.map((day, dayIndex) => {
+                                    const workoutType = this.workoutTypes[dayIndex];
+                                    const isRest = workoutType === 'Rest';
+                                    const logKey = `${index}-${dayIndex}`;
+                                    const isCompleted = this.workoutLogs[logKey] && this.workoutLogs[logKey].completed;
+                                    let bgColor = isRest ? 'bg-gray-700/80' : 'bg-gray-700/50';
+                                    let textColor = isRest ? 'text-gray-400' : 'text-amber-400';
+                                    let checkmark = '';
+                                    if (isCompleted) {
+                                        bgColor = 'bg-green-600';
+                                        textColor = 'text-white';
+                                        checkmark = `<div class="absolute top-1 right-1 text-white"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg></div>`;
+                                    }
+                                    return `
+                                    <div class="day-header p-3 rounded-lg shadow-sm cursor-pointer transition-all duration-300 hover:bg-gray-600/50 ${bgColor} flex flex-col justify-center text-center min-h-[100px] gap-1 relative" data-day-index="${dayIndex}" data-week-index="${index}">
+                                        <p class="font-bold ${isCompleted ? 'text-gray-200' : 'text-gray-400'} text-xs uppercase">${day}</p>
+                                        <h4 class="text-lg font-semibold ${textColor}">${workoutType}</h4>
+                                        ${checkmark}
+                                    </div>`;
+                                }).join('')}
                             </div>
-                            <div class="flex justify-end items-center">
-                                <span id="save-confirm-${logKey}" class="text-green-400 text-sm mr-4 opacity-0 transition-opacity">Saved!</span>
-                                <button class="save-log-btn bg-amber-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-700 transition-colors" data-log-key="${logKey}">Save Log</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            prevBtn.addEventListener('click', () => {
-                if (currentWeekIndex > 0) {
-                    currentWeekIndex--;
-                    updateCarousel();
-                }
-            });
+                            <div id="details-container-week-${index}" class="full-width-details mt-4"></div>
+                        `;
+                        this.dom.carouselTrack.appendChild(slide);
 
-            nextBtn.addEventListener('click', () => {
-                if (currentWeekIndex < totalWeeks - 1) {
-                    currentWeekIndex++;
-                    updateCarousel();
-                }
-            });
+                        const dot = document.createElement('button');
+                        dot.className = 'w-3 h-3 rounded-full transition-colors';
+                        dot.dataset.index = index;
+                        this.dom.dotsContainer.appendChild(dot);
+                    });
+                },
 
-            dotsContainer.addEventListener('click', (e) => {
-                if(e.target.tagName === 'BUTTON') {
-                    currentWeekIndex = parseInt(e.target.dataset.index);
-                    updateCarousel();
-                }
-            });
+                updateCarousel() {
+                    const slide = this.dom.carouselTrack.querySelector('.carousel-slide');
+                    if (!slide) return;
+                    const slideWidth = slide.clientWidth;
+                    this.dom.carouselTrack.style.transform = `translateX(-${this.currentWeekIndex * slideWidth}px)`;
 
-            carouselTrack.addEventListener('click', (e) => {
-                const header = e.target.closest('.day-header');
-                if (header) {
+                    this.dom.carouselTrack.querySelectorAll('.carousel-slide').forEach((s, i) => {
+                        s.classList.toggle('active', i === this.currentWeekIndex);
+                    });
+
+                    this.dom.dotsContainer.querySelectorAll('button').forEach((dot, index) => {
+                        dot.className = `w-3 h-3 rounded-full transition-colors ${index === this.currentWeekIndex ? 'bg-amber-400' : 'bg-gray-600'}`;
+                    });
+
+                    this.dom.prevBtn.disabled = this.currentWeekIndex === 0;
+                    this.dom.nextBtn.disabled = this.currentWeekIndex === this.planData.weeklyPlan.length - 1;
+                },
+                
+                updateProgress() {
+                    const totalWorkouts = this.planData.weeklyPlan.length * this.daysOfWeek.length;
+                    const completedCount = Object.values(this.workoutLogs).filter(log => log.completed).length;
+                    const totalPercentage = totalWorkouts > 0 ? (completedCount / totalWorkouts) * 100 : 0;
+                    this.dom.totalProgressBar.style.width = `${totalPercentage}%`;
+                    this.dom.totalProgressText.textContent = `Overall Progress: ${Math.round(totalPercentage)}%`;
+                },
+
+                renderProgressChart() {
+                    if (!this.isAuthReady || !this.dom.contentProgress.offsetParent) return; // Don't render if tab is hidden
+                    
+                    const ctx = document.getElementById('progress-chart').getContext('2d');
+                    
+                    const loggedRuns = Object.entries(this.workoutLogs)
+                        .filter(([key, log]) => log.completed && log.distance && this.workoutTypes[key.split('-')[1]].includes('Run'))
+                        .map(([key, log]) => {
+                            const [week, day] = key.split('-').map(Number);
+                            return {
+                                label: `W${week + 1}D${day + 1}`,
+                                distance: parseFloat(log.distance)
+                            };
+                        });
+
+                    if (this.activeChart) {
+                        this.activeChart.destroy();
+                    }
+
+                    this.activeChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: loggedRuns.map(r => r.label),
+                            datasets: [{
+                                label: 'Logged Run Distance (miles)',
+                                data: loggedRuns.map(r => r.distance),
+                                borderColor: '#fbbf24', // amber-400
+                                backgroundColor: 'rgba(251, 191, 36, 0.2)',
+                                tension: 0.3,
+                                fill: true,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#d1d5db' } },
+                                x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#d1d5db' } }
+                            },
+                            plugins: { legend: { labels: { color: '#d1d5db' } } }
+                        }
+                    });
+                },
+
+                // --- UI Actions and Logic ---
+                changeWeek(direction) {
+                    const newIndex = this.currentWeekIndex + direction;
+                    if (newIndex >= 0 && newIndex < this.planData.weeklyPlan.length) {
+                        this.currentWeekIndex = newIndex;
+                        this.updateCarousel();
+                    }
+                },
+
+                switchTab(tabName) {
+                    if (tabName === 'plan') {
+                        this.dom.contentPlan.classList.remove('hidden');
+                        this.dom.contentProgress.classList.add('hidden');
+                        this.dom.tabPlan.classList.add('active');
+                        this.dom.tabProgress.classList.remove('active');
+                    } else {
+                        this.dom.contentPlan.classList.add('hidden');
+                        this.dom.contentProgress.classList.remove('hidden');
+                        this.dom.tabPlan.classList.remove('active');
+                        this.dom.tabProgress.classList.add('active');
+                        this.renderProgressChart();
+                    }
+                },
+
+                handleCarouselClick(e) {
+                    const header = e.target.closest('.day-header');
+                    if (header) {
+                        this.toggleWorkoutDetails(header);
+                    }
+                    if (e.target.classList.contains('save-log-btn')) {
+                        this.saveLog(e.target.dataset.logKey);
+                    }
+                },
+
+                toggleWorkoutDetails(header) {
                     const weekIndex = parseInt(header.dataset.weekIndex);
                     const dayIndex = parseInt(header.dataset.dayIndex);
                     
@@ -315,52 +488,162 @@
                     const wasActive = header.classList.contains('active-day');
 
                     slide.querySelectorAll('.day-header').forEach(h => h.classList.remove('active-day'));
-
+                    
                     if (wasActive) {
                         detailsContainer.style.maxHeight = '0px';
+                        detailsContainer.style.padding = '0';
                     } else {
                         header.classList.add('active-day');
-                        const content = generateWorkoutDetailContent(dayIndex, weekIndex);
-                        detailsContainer.innerHTML = `<div class="p-6 bg-gray-700 rounded-lg">${content}</div>`;
+                        const content = this.generateWorkoutDetailContent(dayIndex, weekIndex);
+                        detailsContainer.innerHTML = `<div class="p-4 sm:p-6 bg-gray-700 rounded-lg">${content}</div>`;
                         
                         requestAnimationFrame(() => {
+                            detailsContainer.style.padding = '1rem 0 0 0';
                             detailsContainer.style.maxHeight = detailsContainer.scrollHeight + 'px';
                         });
                     }
-                }
+                },
 
-                if (e.target.classList.contains('save-log-btn')) {
-                    const logKey = e.target.dataset.logKey;
-                    const log = workoutLogs[logKey] || {};
+                generateWorkoutDetailContent(dayIndex, weekIndex) {
+                    const workoutType = this.workoutTypes[dayIndex];
+                    const weekData = this.planData.weeklyPlan[weekIndex];
+                    const logKey = `${weekIndex}-${dayIndex}`;
+                    const log = this.workoutLogs[logKey] || {};
+                    let content = '', logInputs = '';
 
-                    log.completed = document.getElementById(`log-completed-${logKey}`).checked;
-                    log.notes = document.getElementById(`log-notes-${logKey}`).value;
+                    if (workoutType.includes('Run')) {
+                        logInputs = `...`; // Content is too long, but logic is the same
+                    }
+                    
+                    if (workoutType === 'Interval Run') {
+                        content = `<div class="space-y-3"><div><strong class="text-gray-200">Warm-up:</strong> 10-15 minutes of easy jogging.</div><div><strong class="text-gray-200">Workout:</strong> ${weekData.intervalReps} x 400 meters at goal 5k pace.</div><div><strong class="text-gray-200">Target Pace:</strong> ${this.planData.paceGuide.displayPace[2]}.</div><div><strong class="text-gray-200">Recovery:</strong> 400 meters of slow jogging or walking between each interval.</div><div><strong class="text-gray-200">Cool-down:</strong> 10-15 minutes of easy jogging.</div></div>`;
+                    } else if (workoutType === 'Tempo Run') {
+                        content = `<div class="space-y-3"><div><strong class="text-gray-200">Warm-up:</strong> 10 minutes of easy jogging.</div><div><strong class="text-gray-200">Workout:</strong> Run for ${weekData.tempoMins} minutes at a tempo pace.</div><div><strong class="text-gray-200">Target Pace:</strong> ${this.planData.paceGuide.displayPace[1]} min/mile. Should feel "comfortably hard".</div><div><strong class="text-gray-200">Cool-down:</strong> 10 minutes of easy jogging.</div></div>`;
+                    } else if (workoutType === 'Long Run') {
+                        content = `<div class="space-y-3"><div><strong class="text-gray-200">Workout:</strong> Run for ${weekData.longRunDist} miles.</div><div><strong class="text-gray-200">Target Pace:</strong> ${this.planData.paceGuide.displayPace[0]} or ${this.planData.paceGuide.displayPace[3]} min/mile. Keep it easy and conversational.</div><div><strong class="text-gray-200">Purpose:</strong> Build endurance. The goal is to cover the distance, not to run it fast.</div></div>`;
+                    } else if (workoutType.startsWith('Strength')) {
+                        const type = workoutType.endsWith('A') ? 'A' : 'B';
+                        const exercises = this.planData.strengthWorkouts[type];
+                        content = `<ul class="divide-y divide-gray-600">${exercises.map(ex => `<li class="flex justify-between items-center py-4"><div class="flex-grow pr-4"><strong class="block text-base font-medium text-gray-100">${ex.name}</strong><p class="text-sm text-gray-400">${ex.desc}</p></div><div class="text-right flex-shrink-0 w-24"><p class="text-base font-semibold text-amber-400">${ex.sets} sets</p><p class="text-sm text-gray-400">${ex.reps} reps</p></div></li>`).join('')}</ul>`;
+                    } else {
+                        content = `<p>Rest is crucial for recovery and muscle repair. You can do some light activity like walking or stretching, but avoid strenuous exercise.</p>`;
+                    }
+
+                    if (workoutType.includes('Run')) {
+                        logInputs = `
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="log-dist-${logKey}" class="block text-sm font-medium text-gray-300">Distance (mi)</label>
+                                    <input type="number" step="0.1" id="log-dist-${logKey}" value="${log.distance || ''}" class="mt-1 block w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2">
+                                </div>
+                                <div>
+                                    <label for="log-time-${logKey}" class="block text-sm font-medium text-gray-300">Time (mm:ss)</label>
+                                    <input type="text" id="log-time-${logKey}" value="${log.time || ''}" class="mt-1 block w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2">
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="workout-description">${content}</div>
+                        ${workoutType !== 'Rest' ? `
+                        <div class="log-section mt-6 pt-6 border-t border-gray-600">
+                            <h5 class="text-lg font-bold text-gray-100 mb-4">Log Your Workout</h5>
+                            <div class="space-y-4">
+                                <div class="flex items-center">
+                                    <input id="log-completed-${logKey}" type="checkbox" ${log.completed ? 'checked' : ''} class="h-5 w-5 rounded border-gray-500 text-amber-600 focus:ring-amber-500">
+                                    <label for="log-completed-${logKey}" class="ml-3 block text-sm font-medium text-gray-200">Mark as Complete</label>
+                                </div>
+                                ${logInputs}
+                                <div>
+                                    <label for="log-notes-${logKey}" class="block text-sm font-medium text-gray-300">Notes</label>
+                                    <textarea id="log-notes-${logKey}" rows="3" class="mt-1 block w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2">${log.notes || ''}</textarea>
+                                </div>
+                                <div class="flex justify-end items-center">
+                                    <span id="save-confirm-${logKey}" class="text-green-400 text-sm mr-4 opacity-0 transition-opacity">Saved!</span>
+                                    <button class="save-log-btn bg-amber-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-700 transition-colors" data-log-key="${logKey}">Save Log</button>
+                                </div>
+                            </div>
+                        </div>` : ''}
+                    `;
+                },
+
+                async saveLog(logKey) {
+                    if (!this.isAuthReady) return;
+
+                    const newLogData = {};
+                    newLogData[`${logKey}.completed`] = document.getElementById(`log-completed-${logKey}`).checked;
+                    newLogData[`${logKey}.notes`] = document.getElementById(`log-notes-${logKey}`).value;
                     
                     const distInput = document.getElementById(`log-dist-${logKey}`);
-                    if (distInput) log.distance = distInput.value;
+                    if (distInput) newLogData[`${logKey}.distance`] = distInput.value;
 
                     const timeInput = document.getElementById(`log-time-${logKey}`);
-                    if (timeInput) log.time = timeInput.value;
-
-                    workoutLogs[logKey] = log;
-                    saveLogs();
+                    if (timeInput) newLogData[`${logKey}.time`] = timeInput.value;
                     
-                    const saveConfirm = document.getElementById(`save-confirm-${logKey}`);
-                    saveConfirm.classList.remove('opacity-0');
-                    setTimeout(() => saveConfirm.classList.add('opacity-0'), 2000);
+                    // Corrected Firestore path
+                    const docRef = doc(this.db, `artifacts/${this.appId}/users/${this.userId}/workoutLogs/logs`);
+                    try {
+                        await updateDoc(docRef, newLogData);
+                        const saveConfirm = document.getElementById(`save-confirm-${logKey}`);
+                        if(saveConfirm) {
+                           saveConfirm.classList.remove('opacity-0');
+                           setTimeout(() => saveConfirm.classList.add('opacity-0'), 2000);
+                        }
+                    } catch (error) {
+                        if (error.code === 'not-found') {
+                            await setDoc(docRef, { [logKey]: {
+                                completed: newLogData[`${logKey}.completed`],
+                                notes: newLogData[`${logKey}.notes`],
+                                distance: newLogData[`${logKey}.distance`] || null,
+                                time: newLogData[`${logKey}.time`] || null
+                            }});
+                        } else {
+                            console.error("Error saving log:", error);
+                        }
+                    }
+                },
 
-                    renderCarousel();
-                    updateCarousel();
-                    updateProgress();
+                async resetProgress() {
+                    if (!this.isAuthReady) return;
+                    // Corrected Firestore path
+                    const docRef = doc(this.db, `artifacts/${this.appId}/users/${this.userId}/workoutLogs/logs`);
+                    try {
+                        await deleteDoc(docRef);
+                        this.workoutLogs = {};
+                        // No need to call render manually, onSnapshot will trigger it.
+                        this.toggleModal('reset-modal', false);
+                    } catch (error) {
+                        console.error("Error resetting progress:", error);
+                    }
+                },
+
+                // --- Modal Handling ---
+                toggleModal(modalId, show) {
+                    const modal = document.getElementById(modalId);
+                    const content = modal.querySelector('.modal-content');
+                    if (show) {
+                        modal.classList.remove('hidden');
+                        requestAnimationFrame(() => {
+                            modal.classList.remove('opacity-0');
+                            content.classList.remove('scale-95', 'opacity-0');
+                        });
+                    } else {
+                        modal.classList.add('opacity-0');
+                        content.classList.add('scale-95', 'opacity-0');
+                        setTimeout(() => modal.classList.add('hidden'), 300);
+                    }
+                },
+
+                showWelcomeModalIfNeeded() {
+                    if (!localStorage.getItem('welcomeModalSeen')) {
+                        this.toggleModal('welcome-modal', true);
+                        localStorage.setItem('welcomeModalSeen', 'true');
+                    }
                 }
-            });
+            };
 
-            // Initial render
-            renderCarousel();
-            updateCarousel();
-            updateProgress();
-            
-            window.addEventListener('resize', updateCarousel);
+            App.init();
         });
     </script>
 </body>
