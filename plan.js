@@ -44,5 +44,23 @@ window.trainingPlanData = {
         { intervalReps: 12, tempoMins: 30, longRunDist: 6.5 },
         // Week 8
         { intervalReps: 8, tempoMins: 20, longRunDist: 7.0 },
+    ],
+
+    warmupStretches: [
+        { name: "Jumping Jacks", desc: "Start with feet together and arms at your sides, then jump while spreading your legs and bringing your arms overhead. 30 seconds." },
+        { name: "Toe Touches", desc: "Stand with feet shoulder-width apart. Hinge at your hips and reach down towards your toes, keeping your legs relatively straight. Hold briefly and return." },
+        { name: "Straight Leg Raises", desc: "Lie on your back. Keeping one leg straight on the ground, raise the other straight up until you feel a stretch. 10-15 raises per leg." },
+        { name: "High Knees", desc: "Run in place or move forward, bringing your knees up towards your chest. Keep your core engaged. Do for 30 seconds." },
+        { name: "Butt Kicks", desc: "Run in place or move forward, kicking your heels up towards your glutes. Do for 30 seconds." },
+        { name: "Hurdler Hamstring Stretch", desc: "Sit on the ground with one leg extended straight, and the other bent with the sole of your foot against your inner thigh. Gently lean forward over the straight leg. Hold for 20-30 seconds per side." }
+    ],
+
+    cooldownStretches: [
+        { name: "Standing Quad Stretch", desc: "Stand on one leg, pull the other foot towards your glute, feeling a stretch in the front of your thigh. Hold for 30 seconds per leg." },
+        { name: "Standing Hamstring Stretch", desc: "Extend one leg forward with the heel on the ground. Hinge at your hips and lean forward until you feel a stretch. Hold for 30 seconds per leg." },
+        { name: "Calf Stretch", desc: "Stand facing a wall with your hands on it. Step one foot back and press the heel to the floor. Hold for 30 seconds per leg." },
+        { name: "Glute Stretch (Pigeon Pose)", desc: "From a plank position, bring one knee forward towards the opposite hand, lowering your hips. Hold for 30 seconds per side." },
+        { name: "Triceps Stretch", desc: "Reach one arm overhead, bend the elbow, and gently pull the elbow with the opposite hand. Hold for 30 seconds per arm." },
+        { name: "Chest Stretch", desc: "Clasp your hands behind your back and gently pull them down and away from your body. Hold for 30 seconds." }
     ]
 };
