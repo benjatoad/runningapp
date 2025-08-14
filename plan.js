@@ -49,6 +49,7 @@ window.trainingPlanData = {
     warmupStretches: [
         { name: "Jumping Jacks", desc: "Start with feet together and arms at your sides, then jump while spreading your legs and bringing your arms overhead. 30 seconds." },
         { name: "Toe Touches", desc: "Stand with feet shoulder-width apart. Hinge at your hips and reach down towards your toes, keeping your legs relatively straight. Hold briefly and return." },
+        { name: "Calf Stretch 2 Electric Boogaloo", desc: "Lorem ipsum dolor sit amet" },
         { name: "Straight Leg Raises", desc: "Lie on your back. Keeping one leg straight on the ground, raise the other straight up until you feel a stretch. 10-15 raises per leg." },
         { name: "High Knees", desc: "Run in place or move forward, bringing your knees up towards your chest. Keep your core engaged. Do for 30 seconds." },
         { name: "Hurdler Hamstring Stretch", desc: "Sit on the ground with one leg extended straight, and the other bent with the sole of your foot against your inner thigh. Gently lean forward over the straight leg. Hold for 20-30 seconds per side." }
@@ -65,4 +66,5 @@ window.trainingPlanData = {
         { name: "Chest Stretch", desc: "Clasp your hands behind your back and gently pull them down and away from your body. Hold for 30 seconds." }
     ]
 };
+
 
