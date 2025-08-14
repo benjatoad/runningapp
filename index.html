@@ -53,6 +53,9 @@
         .day-header.active-day h4, .day-header.active-day p {
             color: #1f2937; /* gray-800 */
         }
+        .day-header.current-day-highlight {
+            box-shadow: 0 0 0 2px #fbbf24, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* amber-400 border and existing shadow */
+        }
         .progress-bar {
             transition: width 0.5s ease-in-out;
         }
@@ -267,6 +270,7 @@
                 init() {
                     this.getDOMElements();
                     this.windowWidth = window.innerWidth;
+                    this.todayIndex = (new Date().getDay() + 6) % 7;
                     this.loadLogsFromStorage();
                     this.addEventListeners();
                     this.updateHeaders();
@@ -384,7 +388,9 @@
                         textColor = 'text-white';
                         checkmark = `<div class="absolute top-1 right-1 text-white"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg></div>`;
                     }
-                    const headerHTML = `<div class="day-header p-3 rounded-lg shadow-sm cursor-pointer transition-all duration-300 hover:bg-gray-600/50 ${bgColor} flex flex-col justify-center text-center min-h-[100px] gap-1 relative" data-day-index="${dayIndex}" data-week-index="${weekIndex}"><p class="font-bold ${isCompleted ? 'text-gray-200' : 'text-gray-400'} text-xs uppercase">${dayName}</p><h4 class="text-lg font-semibold ${textColor}">${workoutType}</h4>${checkmark}</div>`;
+                    const isToday = dayIndex === this.todayIndex;
+                    const todayClass = isToday ? 'current-day-highlight' : '';
+                    const headerHTML = `<div class="day-header p-3 rounded-lg shadow-sm cursor-pointer transition-all duration-300 hover:bg-gray-600/50 ${bgColor} ${todayClass} flex flex-col justify-center text-center min-h-[100px] gap-1 relative" data-day-index="${dayIndex}" data-week-index="${weekIndex}"><p class="font-bold ${isCompleted ? 'text-gray-200' : 'text-gray-400'} text-xs uppercase">${dayName}</p><h4 class="text-lg font-semibold ${textColor}">${workoutType}</h4>${checkmark}</div>`;
                     return viewType === 'mobile' ? `<div class="day-wrapper-mobile rounded-lg overflow-hidden ${isCompleted ? 'bg-green-600' : 'bg-gray-700/50'}">${headerHTML}<div class="details-panel mobile-details"></div></div>` : headerHTML;
                 },
 
