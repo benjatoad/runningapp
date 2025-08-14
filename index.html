@@ -10,6 +10,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Link to the external plan data file. This will be used when running locally. -->
+    <script src="plan.js"></script>
+
     <style>
         html { scroll-behavior: smooth; }
         body {
@@ -75,8 +78,8 @@
     <div id="app" class="container mx-auto p-4 md:p-8 max-w-7xl">
         
         <header class="text-center mb-8 md:mb-12 relative">
-            <h1 class="text-3xl md:text-5xl font-bold text-gray-100">Your 8-Week Training Plan</h1>
-            <p class="text-lg md:text-xl text-gray-400 mt-2">To a Sub-25min 5k & Sub-60min 10k</p>
+            <h1 id="plan-title" class="text-3xl md:text-5xl font-bold text-gray-100">Your 8-Week Training Plan</h1>
+            <p id="plan-subtitle" class="text-lg md:text-xl text-gray-400 mt-2">To a Sub-25min 5k & Sub-60min 10k</p>
             <div class="mt-6 max-w-2xl mx-auto">
                 <div class="w-full bg-gray-700 rounded-full h-2.5">
                     <div id="total-progress-bar" class="bg-green-500 h-2.5 rounded-full progress-bar" style="width: 0%"></div>
@@ -126,20 +129,13 @@
 
             <div id="tab-content-progress" class="hidden">
                  <div class="bg-gray-800 p-4 sm:p-6 rounded-xl shadow-lg">
-                    <h2 class="text-2xl font-bold text-amber-400 mb-4 text-center">Run Distance Progress</h2>
-                    <canvas id="progress-chart"></canvas>
+                    <h2 class="text-2xl font-bold text-amber-400 mb-4 text-center">Total Miles Per Week</h2>
+                    <div class="relative h-96">
+                        <canvas id="progress-chart"></canvas>
+                    </div>
                 </div>
             </div>
         </main>
-    </div>
-
-    <!-- Welcome Modal -->
-    <div id="welcome-modal" class="modal-backdrop fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
-        <div class="modal-content bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full p-8 text-center transform scale-95 opacity-0">
-            <h2 class="text-3xl font-bold text-amber-400 mb-4">Welcome to Your Training Plan!</h2>
-            <p class="text-gray-300 mb-6">This is an interactive 8-week plan. Navigate through the weeks, click on a day to see the workout, and log your progress to track your journey.</p>
-            <button id="close-welcome-modal" class="bg-amber-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-700 transition-transform hover:scale-105">Let's Go!</button>
-        </div>
     </div>
 
     <!-- Reset Confirmation Modal -->
@@ -154,30 +150,19 @@
         </div>
     </div>
     
-    <script type="module">
-        // Firebase Imports
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- App State and Configuration ---
-            const App = {
-                // Firebase and User State
-                db: null,
-                auth: null,
-                userId: null,
-                appId: null, // <-- Added appId
-                isAuthReady: false,
-                workoutLogUnsubscribe: null,
-
-                // UI State
-                currentWeekIndex: 0,
-                activeChart: null,
-
-                // Data
-                workoutLogs: {},
-                planData: {
+            // --- Fallback Data ---
+            // If plan.js is not loaded (e.g., in a preview environment), use this default data.
+            // This ensures the application is still functional in the preview.
+            if (typeof window.trainingPlanData === 'undefined') {
+                console.warn("plan.js not found. Using fallback data. This is expected in the preview environment.");
+                window.trainingPlanData = {
+                    id: "sub25_5k_sub60_10k_v1",
+                    title: "Your 8-Week Training Plan",
+                    subtitle: "To a Sub-25min 5k & Sub-60min 10k",
+                    daysOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                    workoutTypes: ['Interval Run', 'Strength A', 'Tempo Run', 'Strength B', 'Rest', 'Long Run', 'Rest'],
                     paceGuide: {
                         labels: ['Easy Run', 'Tempo Run', 'Interval (400m)', 'Long Run'],
                         displayPace: ['11:00-12:00', '9:30-10:00', '2:00-2:05/lap', '11:30-12:30']
@@ -204,13 +189,24 @@
                         { intervalReps: 10, tempoMins: 40, longRunDist: 5.5 }, { intervalReps: 11, tempoMins: 40, longRunDist: 6.0 },
                         { intervalReps: 12, tempoMins: 30, longRunDist: 6.5 }, { intervalReps: 8, tempoMins: 20, longRunDist: 7.0 },
                     ]
-                },
-                daysOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-                workoutTypes: ['Interval Run', 'Strength A', 'Tempo Run', 'Strength B', 'Rest', 'Long Run', 'Rest'],
+                };
+            }
+
+            // --- App State and Configuration ---
+            const App = {
+                // UI State
+                currentWeekIndex: 0,
+                activeChart: null,
+
+                // Data
+                workoutLogs: {},
+                planData: window.trainingPlanData, // Load data from global scope
 
                 // --- DOM Elements ---
                 getDOMElements() {
                     this.dom = {
+                        planTitle: document.getElementById('plan-title'),
+                        planSubtitle: document.getElementById('plan-subtitle'),
                         carouselTrack: document.getElementById('carousel-track'),
                         dotsContainer: document.getElementById('carousel-dots'),
                         prevBtn: document.getElementById('prev-btn'),
@@ -223,8 +219,6 @@
                         contentPlan: document.getElementById('tab-content-plan'),
                         contentProgress: document.getElementById('tab-content-progress'),
                         // Modals
-                        welcomeModal: document.getElementById('welcome-modal'),
-                        closeWelcomeModal: document.getElementById('close-welcome-modal'),
                         resetModal: document.getElementById('reset-modal'),
                         resetBtn: document.getElementById('reset-btn'),
                         cancelResetBtn: document.getElementById('cancel-reset-btn'),
@@ -235,52 +229,26 @@
                 // --- Initialization ---
                 init() {
                     this.getDOMElements();
-                    this.initFirebase();
+                    this.loadLogsFromStorage();
                     this.addEventListeners();
-                    this.showWelcomeModalIfNeeded();
+                    this.updateHeaders();
+                    this.render();
                 },
 
-                initFirebase() {
-                    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "DEMO", authDomain: "DEMO", projectId: "DEMO" };
-                    this.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                    const app = initializeApp(firebaseConfig);
-                    this.db = getFirestore(app);
-                    this.auth = getAuth(app);
-                    
-                    onAuthStateChanged(this.auth, async (user) => {
-                        if (user) {
-                            this.userId = user.uid;
-                            this.isAuthReady = true;
-                            this.setupWorkoutLogListener();
-                        } else {
-                           try {
-                                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                                    await signInWithCustomToken(this.auth, __initial_auth_token);
-                                } else {
-                                    await signInAnonymously(this.auth);
-                                }
-                            } catch (error) {
-                                console.error("Authentication failed:", error);
-                            }
-                        }
-                    });
+                updateHeaders() {
+                    this.dom.planTitle.textContent = this.planData.title;
+                    this.dom.planSubtitle.textContent = this.planData.subtitle;
                 },
 
-                setupWorkoutLogListener() {
-                    if (this.workoutLogUnsubscribe) this.workoutLogUnsubscribe(); // Detach old listener
-                    
-                    // Corrected Firestore path
-                    const docRef = doc(this.db, `artifacts/${this.appId}/users/${this.userId}/workoutLogs/logs`);
-                    this.workoutLogUnsubscribe = onSnapshot(docRef, (docSnap) => {
-                        if (docSnap.exists()) {
-                            this.workoutLogs = docSnap.data();
-                        } else {
-                            this.workoutLogs = {};
-                        }
-                        this.render();
-                    }, (error) => {
-                        console.error("Error listening to workout logs:", error);
-                    });
+                // --- Data Handling ---
+                loadLogsFromStorage() {
+                    const key = `workoutLogs_${this.planData.id}`;
+                    this.workoutLogs = JSON.parse(localStorage.getItem(key)) || {};
+                },
+
+                saveLogsToStorage() {
+                    const key = `workoutLogs_${this.planData.id}`;
+                    localStorage.setItem(key, JSON.stringify(this.workoutLogs));
                 },
 
                 // --- Event Listeners ---
@@ -301,7 +269,6 @@
                     this.dom.tabProgress.addEventListener('click', () => this.switchTab('progress'));
 
                     // Modals
-                    this.dom.closeWelcomeModal.addEventListener('click', () => this.toggleModal('welcome-modal', false));
                     this.dom.resetBtn.addEventListener('click', () => this.toggleModal('reset-modal', true));
                     this.dom.cancelResetBtn.addEventListener('click', () => this.toggleModal('reset-modal', false));
                     this.dom.confirmResetBtn.addEventListener('click', () => this.resetProgress());
@@ -325,12 +292,12 @@
                         slide.dataset.weekIndex = index;
 
                         let completedInWeek = 0;
-                        for (let i = 0; i < this.daysOfWeek.length; i++) {
+                        for (let i = 0; i < this.planData.daysOfWeek.length; i++) {
                             if (this.workoutLogs[`${index}-${i}`] && this.workoutLogs[`${index}-${i}`].completed) {
                                 completedInWeek++;
                             }
                         }
-                        const weeklyPercentage = (completedInWeek / this.daysOfWeek.length) * 100;
+                        const weeklyPercentage = (completedInWeek / this.planData.daysOfWeek.length) * 100;
 
                         slide.innerHTML = `
                             <h2 class="text-2xl font-bold text-amber-400 mb-2 text-center">Week ${index + 1}</h2>
@@ -342,8 +309,8 @@
                                 <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Strength</p><p class="font-bold text-xl text-gray-100">2 sessions</p></div>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-7 gap-2">
-                                ${this.daysOfWeek.map((day, dayIndex) => {
-                                    const workoutType = this.workoutTypes[dayIndex];
+                                ${this.planData.daysOfWeek.map((day, dayIndex) => {
+                                    const workoutType = this.planData.workoutTypes[dayIndex];
                                     const isRest = workoutType === 'Rest';
                                     const logKey = `${index}-${dayIndex}`;
                                     const isCompleted = this.workoutLogs[logKey] && this.workoutLogs[logKey].completed;
@@ -393,7 +360,7 @@
                 },
                 
                 updateProgress() {
-                    const totalWorkouts = this.planData.weeklyPlan.length * this.daysOfWeek.length;
+                    const totalWorkouts = this.planData.weeklyPlan.length * this.planData.daysOfWeek.length;
                     const completedCount = Object.values(this.workoutLogs).filter(log => log.completed).length;
                     const totalPercentage = totalWorkouts > 0 ? (completedCount / totalWorkouts) * 100 : 0;
                     this.dom.totalProgressBar.style.width = `${totalPercentage}%`;
@@ -401,45 +368,65 @@
                 },
 
                 renderProgressChart() {
-                    if (!this.isAuthReady || !this.dom.contentProgress.offsetParent) return; // Don't render if tab is hidden
+                    if (!this.dom.contentProgress.offsetParent) return;
                     
                     const ctx = document.getElementById('progress-chart').getContext('2d');
                     
-                    const loggedRuns = Object.entries(this.workoutLogs)
-                        .filter(([key, log]) => log.completed && log.distance && this.workoutTypes[key.split('-')[1]].includes('Run'))
-                        .map(([key, log]) => {
-                            const [week, day] = key.split('-').map(Number);
-                            return {
-                                label: `W${week + 1}D${day + 1}`,
-                                distance: parseFloat(log.distance)
-                            };
-                        });
+                    const weeklyTotals = Array(this.planData.weeklyPlan.length).fill(0);
+                    Object.entries(this.workoutLogs).forEach(([key, log]) => {
+                        if (log.completed && log.distance) {
+                            const [weekIndexStr, dayIndexStr] = key.split('-');
+                            const weekIndex = parseInt(weekIndexStr, 10);
+                            const dayIndex = parseInt(dayIndexStr, 10);
+                            
+                            if (!isNaN(weekIndex) && weekIndex < weeklyTotals.length && this.planData.workoutTypes[dayIndex].includes('Run')) {
+                                weeklyTotals[weekIndex] += parseFloat(log.distance) || 0;
+                            }
+                        }
+                    });
+
+                    const labels = this.planData.weeklyPlan.map((_, index) => `Week ${index + 1}`);
 
                     if (this.activeChart) {
                         this.activeChart.destroy();
                     }
 
                     this.activeChart = new Chart(ctx, {
-                        type: 'line',
+                        type: 'bar',
                         data: {
-                            labels: loggedRuns.map(r => r.label),
+                            labels: labels,
                             datasets: [{
-                                label: 'Logged Run Distance (miles)',
-                                data: loggedRuns.map(r => r.distance),
-                                borderColor: '#fbbf24', // amber-400
-                                backgroundColor: 'rgba(251, 191, 36, 0.2)',
-                                tension: 0.3,
-                                fill: true,
+                                label: 'Total Miles Ran',
+                                data: weeklyTotals,
+                                backgroundColor: 'rgba(251, 191, 36, 0.6)',
+                                borderColor: '#fbbf24',
+                                borderWidth: 1
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
                             scales: {
-                                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#d1d5db' } },
-                                x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#d1d5db' } }
+                                y: { 
+                                    beginAtZero: true, 
+                                    grid: { color: 'rgba(255,255,255,0.1)' }, 
+                                    ticks: { color: '#d1d5db' },
+                                    title: {
+                                        display: true,
+                                        text: 'Total Miles Ran',
+                                        color: '#d1d5db'
+                                    }
+                                },
+                                x: { 
+                                    grid: { color: 'rgba(255,255,255,0.1)' }, 
+                                    ticks: { color: '#d1d5db' } 
+                                }
                             },
-                            plugins: { legend: { labels: { color: '#d1d5db' } } }
+                            plugins: { 
+                                legend: { 
+                                    display: false
+                                } 
+                            }
                         }
                     });
                 },
@@ -505,15 +492,11 @@
                 },
 
                 generateWorkoutDetailContent(dayIndex, weekIndex) {
-                    const workoutType = this.workoutTypes[dayIndex];
+                    const workoutType = this.planData.workoutTypes[dayIndex];
                     const weekData = this.planData.weeklyPlan[weekIndex];
                     const logKey = `${weekIndex}-${dayIndex}`;
                     const log = this.workoutLogs[logKey] || {};
                     let content = '', logInputs = '';
-
-                    if (workoutType.includes('Run')) {
-                        logInputs = `...`; // Content is too long, but logic is the same
-                    }
                     
                     if (workoutType === 'Interval Run') {
                         content = `<div class="space-y-3"><div><strong class="text-gray-200">Warm-up:</strong> 10-15 minutes of easy jogging.</div><div><strong class="text-gray-200">Workout:</strong> ${weekData.intervalReps} x 400 meters at goal 5k pace.</div><div><strong class="text-gray-200">Target Pace:</strong> ${this.planData.paceGuide.displayPace[2]}.</div><div><strong class="text-gray-200">Recovery:</strong> 400 meters of slow jogging or walking between each interval.</div><div><strong class="text-gray-200">Cool-down:</strong> 10-15 minutes of easy jogging.</div></div>`;
@@ -568,54 +551,35 @@
                     `;
                 },
 
-                async saveLog(logKey) {
-                    if (!this.isAuthReady) return;
+                saveLog(logKey) {
+                    const log = this.workoutLogs[logKey] || {};
 
-                    const newLogData = {};
-                    newLogData[`${logKey}.completed`] = document.getElementById(`log-completed-${logKey}`).checked;
-                    newLogData[`${logKey}.notes`] = document.getElementById(`log-notes-${logKey}`).value;
+                    log.completed = document.getElementById(`log-completed-${logKey}`).checked;
+                    log.notes = document.getElementById(`log-notes-${logKey}`).value;
                     
                     const distInput = document.getElementById(`log-dist-${logKey}`);
-                    if (distInput) newLogData[`${logKey}.distance`] = distInput.value;
+                    if (distInput) log.distance = distInput.value;
 
                     const timeInput = document.getElementById(`log-time-${logKey}`);
-                    if (timeInput) newLogData[`${logKey}.time`] = timeInput.value;
+                    if (timeInput) log.time = timeInput.value;
+
+                    this.workoutLogs[logKey] = log;
+                    this.saveLogsToStorage();
                     
-                    // Corrected Firestore path
-                    const docRef = doc(this.db, `artifacts/${this.appId}/users/${this.userId}/workoutLogs/logs`);
-                    try {
-                        await updateDoc(docRef, newLogData);
-                        const saveConfirm = document.getElementById(`save-confirm-${logKey}`);
-                        if(saveConfirm) {
-                           saveConfirm.classList.remove('opacity-0');
-                           setTimeout(() => saveConfirm.classList.add('opacity-0'), 2000);
-                        }
-                    } catch (error) {
-                        if (error.code === 'not-found') {
-                            await setDoc(docRef, { [logKey]: {
-                                completed: newLogData[`${logKey}.completed`],
-                                notes: newLogData[`${logKey}.notes`],
-                                distance: newLogData[`${logKey}.distance`] || null,
-                                time: newLogData[`${logKey}.time`] || null
-                            }});
-                        } else {
-                            console.error("Error saving log:", error);
-                        }
+                    const saveConfirm = document.getElementById(`save-confirm-${logKey}`);
+                    if(saveConfirm) {
+                        saveConfirm.classList.remove('opacity-0');
+                        setTimeout(() => saveConfirm.classList.add('opacity-0'), 2000);
                     }
+                    
+                    this.render();
                 },
 
-                async resetProgress() {
-                    if (!this.isAuthReady) return;
-                    // Corrected Firestore path
-                    const docRef = doc(this.db, `artifacts/${this.appId}/users/${this.userId}/workoutLogs/logs`);
-                    try {
-                        await deleteDoc(docRef);
-                        this.workoutLogs = {};
-                        // No need to call render manually, onSnapshot will trigger it.
-                        this.toggleModal('reset-modal', false);
-                    } catch (error) {
-                        console.error("Error resetting progress:", error);
-                    }
+                resetProgress() {
+                    this.workoutLogs = {};
+                    this.saveLogsToStorage();
+                    this.toggleModal('reset-modal', false);
+                    this.render();
                 },
 
                 // --- Modal Handling ---
@@ -632,13 +596,6 @@
                         modal.classList.add('opacity-0');
                         content.classList.add('scale-95', 'opacity-0');
                         setTimeout(() => modal.classList.add('hidden'), 300);
-                    }
-                },
-
-                showWelcomeModalIfNeeded() {
-                    if (!localStorage.getItem('welcomeModalSeen')) {
-                        this.toggleModal('welcome-modal', true);
-                        localStorage.setItem('welcomeModalSeen', 'true');
                     }
                 }
             };
