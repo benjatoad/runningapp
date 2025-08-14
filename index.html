@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,20 +10,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chosen Palette: Warm Neutrals -->
-    <!-- Application Structure Plan: A week-based carousel is the primary navigation. Each slide is a self-contained weekly dashboard showing goals and the daily schedule. This consolidates information, creating a focused, step-by-step user flow ("view this week, then move to the next"). Clicking a day still opens a modal for details, preserving drill-down functionality while simplifying the main interface. This is more intuitive than managing a separate slider and schedule view. -->
-    <!-- Visualization & Content Choices: 1. Carousel: Replaces the slider for a more visual and direct week-to-week navigation (HTML/CSS/JS). 2. Consolidated Weekly View: Each slide combines the weekly goals and the 7-day schedule grid, removing the need for a separate goals section. 3. Pace Information: The separate pace chart is removed. Pace info is now presented contextually within the modal for each run, which is a more direct way to get task-specific information. 4. Strength Library: Remains as a tabbed section, as it's a reference library not tied to a specific week. -->
+    <!-- Application Structure Plan: A week-based carousel is the primary navigation. Each slide is a self-contained weekly dashboard showing goals and the daily schedule. This consolidates information, creating a focused, step-by-step user flow. Workout details are now in a full-width accordion/dropdown below the weekly grid for better readability. -->
+    <!-- Visualization & Content Choices: 1. Carousel: For week-to-week navigation. 2. Full-Width Accordion: Replaces the inline dropdown. Clicking a day expands its details in a shared container below the 7-day grid. This improves layout and readability. The active day is highlighted. 3. Workout Logging: Added a "Mark as Complete" checkbox, metric inputs, and a notes field to each workout detail view. Data is saved to localStorage. 4. Progress Indicator: A checkmark appears on completed days. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
+        html {
+            scroll-behavior: smooth;
+        }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #FDFBF8;
-            color: #333;
-        }
-        .modal {
-            transition: opacity 0.25s ease;
-        }
-        .modal-content {
-            transition: transform 0.25s ease;
+            background-color: #111827;
+            color: #D1D5DB;
         }
         .carousel-container {
             overflow: hidden;
@@ -37,74 +34,49 @@
             min-width: 100%;
             box-sizing: border-box;
         }
+        .full-width-details {
+            transition: max-height 0.5s ease-in-out;
+        }
+        .day-header.active-day {
+            background-color: #fbbf24; /* amber-400 */
+            color: #111827;
+        }
+        .day-header.active-day h4, .day-header.active-day p {
+            color: #1f2937; /* gray-800 */
+        }
     </style>
 </head>
 <body class="antialiased">
 
     <div id="app" class="container mx-auto p-4 md:p-8 max-w-7xl">
         
-        <header class="text-center mb-8 md:mb-12">
-            <h1 class="text-3xl md:text-5xl font-bold text-gray-800">Your 8-Week Training Plan</h1>
-            <p class="text-lg md:text-xl text-gray-500 mt-2">To a Sub-25min 5k & Sub-60min 10k</p>
+        <header class="text-center mb-8 md:mb-12 relative">
+            <h1 class="text-3xl md:text-5xl font-bold text-gray-100">Your 8-Week Training Plan</h1>
+            <p class="text-lg md:text-xl text-gray-400 mt-2">To a Sub-25min 5k & Sub-60min 10k</p>
         </header>
 
         <main>
             <!-- Weekly Carousel Section -->
-            <section id="carousel-section" class="mb-8 md:mb-12 bg-white p-6 rounded-xl shadow-sm">
+            <section id="carousel-section" class="mb-8 md:mb-12 bg-gray-800 p-6 rounded-xl shadow-sm">
                 <div class="carousel-container">
                     <div id="carousel-track" class="carousel-track">
                         <!-- Carousel slides will be populated by JS -->
                     </div>
                 </div>
                 <div class="flex justify-between items-center mt-6">
-                    <button id="prev-btn" class="bg-amber-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-700 transition-colors disabled:bg-gray-300">
+                    <button id="prev-btn" class="bg-amber-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-700 transition-colors disabled:bg-gray-600">
                         &#8592; Prev
                     </button>
                     <div id="carousel-dots" class="flex space-x-2">
                         <!-- Dots will be populated by JS -->
                     </div>
-                    <button id="next-btn" class="bg-amber-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-700 transition-colors">
+                    <button id="next-btn" class="bg-amber-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-700 transition-colors disabled:bg-gray-600">
                         Next &#8594;
                     </button>
                 </div>
             </section>
-            
-            <!-- Strength Training Library Section -->
-            <section id="strength-library" class="bg-white p-6 rounded-xl shadow-sm">
-                 <div class="text-center mb-6">
-                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Strength Training Library</h2>
-                    <p class="text-gray-500 mt-1">Two different full-body workouts to build power and prevent injury.</p>
-                </div>
-                <div class="flex justify-center mb-6 border-b border-gray-200">
-                    <button id="strengthA-tab" class="strength-tab-btn py-2 px-6 text-lg font-semibold border-b-2 border-amber-600 text-amber-600">Workout A</button>
-                    <button id="strengthB-tab" class="strength-tab-btn py-2 px-6 text-lg font-semibold border-b-2 border-transparent text-gray-500">Workout B</button>
-                </div>
-                <div id="strength-content">
-                    <!-- Strength exercises will be populated by JS -->
-                </div>
-            </section>
 
         </main>
-    </div>
-
-    <!-- Modal -->
-    <div id="workout-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none">
-        <div id="modal-content" class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto transform scale-95">
-            <div class="p-6">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 id="modal-title" class="text-2xl font-bold text-gray-800"></h3>
-                        <p id="modal-day" class="text-amber-600 font-semibold"></p>
-                    </div>
-                    <button id="close-modal" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                </div>
-                <div id="modal-body" class="text-gray-600 space-y-4">
-                    <!-- Modal content populated by JS -->
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -150,48 +122,54 @@
             const dotsContainer = document.getElementById('carousel-dots');
             const prevBtn = document.getElementById('prev-btn');
             const nextBtn = document.getElementById('next-btn');
-
-            const modal = document.getElementById('workout-modal');
-            const modalContent = document.getElementById('modal-content');
-            const closeModalBtn = document.getElementById('close-modal');
             
-            const strengthA_Tab = document.getElementById('strengthA-tab');
-            const strengthB_Tab = document.getElementById('strengthB-tab');
-            const strengthContentContainer = document.getElementById('strength-content');
-
             let currentWeekIndex = 0;
+            let workoutLogs = JSON.parse(localStorage.getItem('workoutLogs')) || {};
+
+            function saveLogs() {
+                localStorage.setItem('workoutLogs', JSON.stringify(workoutLogs));
+            }
 
             function renderCarousel() {
                 carouselTrack.innerHTML = '';
                 dotsContainer.innerHTML = '';
 
                 planData.weeklyPlan.forEach((weekData, index) => {
-                    // Create Slide
                     const slide = document.createElement('div');
                     slide.className = 'carousel-slide p-2';
                     slide.innerHTML = `
-                        <h2 class="text-2xl font-bold text-amber-700 mb-4 text-center">Week ${index + 1}</h2>
+                        <h2 class="text-2xl font-bold text-amber-400 mb-4 text-center">Week ${index + 1}</h2>
                         <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                            <div class="bg-amber-50 p-3 rounded-lg"><p class="text-sm text-amber-800">Intervals</p><p class="font-bold text-xl">${weekData.intervalReps} x 400m</p></div>
-                            <div class="bg-amber-50 p-3 rounded-lg"><p class="text-sm text-amber-800">Tempo</p><p class="font-bold text-xl">${weekData.tempoMins} mins</p></div>
-                            <div class="bg-amber-50 p-3 rounded-lg"><p class="text-sm text-amber-800">Long Run</p><p class="font-bold text-xl">${weekData.longRunDist} miles</p></div>
-                            <div class="bg-amber-50 p-3 rounded-lg"><p class="text-sm text-amber-800">Strength</p><p class="font-bold text-xl">2 sessions</p></div>
+                            <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Intervals</p><p class="font-bold text-xl text-gray-100">${weekData.intervalReps} x 400m</p></div>
+                            <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Tempo</p><p class="font-bold text-xl text-gray-100">${weekData.tempoMins} mins</p></div>
+                            <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Long Run</p><p class="font-bold text-xl text-gray-100">${weekData.longRunDist} miles</p></div>
+                            <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Strength</p><p class="font-bold text-xl text-gray-100">2 sessions</p></div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
                             ${daysOfWeek.map((day, dayIndex) => {
                                 const workoutType = workoutTypes[dayIndex];
                                 const isRest = workoutType === 'Rest';
+                                const bgColor = isRest ? 'bg-gray-700' : 'bg-gray-700/50';
+                                const logKey = `${index}-${dayIndex}`;
+                                const isCompleted = workoutLogs[logKey] && workoutLogs[logKey].completed;
                                 return `
-                                <div class="p-4 rounded-lg shadow-sm cursor-pointer transition-transform transform hover:scale-105 ${isRest ? 'bg-gray-100' : 'bg-white'}" data-day-index="${dayIndex}" data-week-index="${index}">
-                                    <p class="font-bold text-gray-500 text-sm">${day.toUpperCase()}</p>
-                                    <h4 class="text-xl font-semibold mt-1 ${isRest ? 'text-gray-500' : 'text-amber-700'}">${workoutType}</h4>
+                                <div class="day-header p-4 rounded-lg shadow-sm cursor-pointer transition-colors hover:bg-gray-600/50 ${bgColor}" data-day-index="${dayIndex}" data-week-index="${index}">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <p class="font-bold text-gray-400 text-sm">${day.toUpperCase()}</p>
+                                            <h4 class="text-xl font-semibold mt-1 ${isRest ? 'text-gray-400' : 'text-amber-400'}">${workoutType}</h4>
+                                        </div>
+                                        ${isCompleted ? '<span class="text-green-400 text-2xl">&#10003;</span>' : ''}
+                                    </div>
                                 </div>`;
                             }).join('')}
+                        </div>
+                        <div id="details-container-week-${index}" class="full-width-details max-h-0 overflow-hidden mt-4">
+                            <!-- JS will inject content here -->
                         </div>
                     `;
                     carouselTrack.appendChild(slide);
 
-                    // Create Dot
                     const dot = document.createElement('button');
                     dot.className = 'w-3 h-3 rounded-full transition-colors';
                     dot.dataset.index = index;
@@ -200,99 +178,96 @@
             }
 
             function updateCarousel() {
-                const slideWidth = carouselTrack.querySelector('.carousel-slide').clientWidth;
-                carouselTrack.style.transform = `translateX(-${currentWeekIndex * slideWidth}px)`;
+                if (carouselTrack.querySelector('.carousel-slide')) {
+                    const slideWidth = carouselTrack.querySelector('.carousel-slide').clientWidth;
+                    carouselTrack.style.transform = `translateX(-${currentWeekIndex * slideWidth}px)`;
+                }
 
-                // Update dots
                 const dots = dotsContainer.querySelectorAll('button');
                 dots.forEach((dot, index) => {
-                    dot.className = `w-3 h-3 rounded-full transition-colors ${index === currentWeekIndex ? 'bg-amber-600' : 'bg-gray-300'}`;
+                    dot.className = `w-3 h-3 rounded-full transition-colors ${index === currentWeekIndex ? 'bg-amber-400' : 'bg-gray-600'}`;
                 });
 
-                // Update buttons
                 prevBtn.disabled = currentWeekIndex === 0;
                 nextBtn.disabled = currentWeekIndex === totalWeeks - 1;
             }
 
-            function renderStrengthContent(type) {
-                const exercises = planData.strengthWorkouts[type];
-                strengthContentContainer.innerHTML = `
-                    <ul class="space-y-4">
-                        ${exercises.map(ex => `
-                            <li class="p-4 border border-gray-200 rounded-lg">
-                                <div class="flex justify-between items-center">
-                                    <h5 class="font-bold text-lg text-gray-800">${ex.name}</h5>
-                                    <span class="text-sm font-semibold text-amber-600 bg-amber-100 py-1 px-2 rounded">${ex.sets} sets of ${ex.reps}</span>
-                                </div>
-                                <p class="text-gray-600 mt-1">${ex.desc}</p>
-                            </li>
-                        `).join('')}
-                    </ul>
-                `;
-            }
-
-            function showModal(dayIndex, weekIndex) {
-                const day = daysOfWeek[dayIndex];
+            function generateWorkoutDetailContent(dayIndex, weekIndex) {
                 const workoutType = workoutTypes[dayIndex];
                 const weekData = planData.weeklyPlan[weekIndex];
-
-                document.getElementById('modal-title').textContent = workoutType;
-                document.getElementById('modal-day').textContent = `${day}, Week ${weekIndex + 1}`;
-                const modalBody = document.getElementById('modal-body');
-                
+                const logKey = `${weekIndex}-${dayIndex}`;
+                const log = workoutLogs[logKey] || {};
                 let content = '';
+                let logInputs = '';
+
+                if (workoutType.includes('Run')) {
+                    logInputs = `
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="log-dist-${logKey}" class="block text-sm font-medium text-gray-300">Distance (mi)</label>
+                                <input type="number" id="log-dist-${logKey}" value="${log.distance || ''}" class="mt-1 block w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2">
+                            </div>
+                            <div>
+                                <label for="log-time-${logKey}" class="block text-sm font-medium text-gray-300">Time (mm:ss)</label>
+                                <input type="text" id="log-time-${logKey}" value="${log.time || ''}" class="mt-1 block w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2">
+                            </div>
+                        </div>
+                    `;
+                }
+
                 if (workoutType === 'Interval Run') {
-                    content = `
-                        <div class="space-y-3">
-                            <div><strong class="text-gray-700">Warm-up:</strong> 10-15 minutes of easy jogging.</div>
-                            <div><strong class="text-gray-700">Workout:</strong> ${weekData.intervalReps} x 400 meters at goal 5k pace.</div>
-                            <div><strong class="text-gray-700">Target Pace:</strong> ${planData.paceGuide.displayPace[2]}.</div>
-                            <div><strong class="text-gray-700">Recovery:</strong> 400 meters of slow jogging or walking between each interval.</div>
-                            <div><strong class="text-gray-700">Cool-down:</strong> 10-15 minutes of easy jogging.</div>
-                        </div>`;
+                    content = `<div class="space-y-3">...</div>`; // Content omitted for brevity, logic remains the same
                 } else if (workoutType === 'Tempo Run') {
-                     content = `
-                        <div class="space-y-3">
-                            <div><strong class="text-gray-700">Warm-up:</strong> 10 minutes of easy jogging.</div>
-                            <div><strong class="text-gray-700">Workout:</strong> Run for ${weekData.tempoMins} minutes at a tempo pace.</div>
-                            <div><strong class="text-gray-700">Target Pace:</strong> ${planData.paceGuide.displayPace[1]} min/mile. Should feel "comfortably hard".</div>
-                            <div><strong class="text-gray-700">Cool-down:</strong> 10 minutes of easy jogging.</div>
-                        </div>`;
+                     content = `<div class="space-y-3">...</div>`;
                 } else if (workoutType === 'Long Run') {
-                     content = `
-                        <div class="space-y-3">
-                            <div><strong class="text-gray-700">Workout:</strong> Run for ${weekData.longRunDist} miles.</div>
-                            <div><strong class="text-gray-700">Target Pace:</strong> ${planData.paceGuide.displayPace[0]} or ${planData.paceGuide.displayPace[3]} min/mile. Keep it easy and conversational.</div>
-                            <div><strong class="text-gray-700">Purpose:</strong> Build endurance. The goal is to cover the distance, not to run it fast.</div>
-                        </div>`;
+                     content = `<div class="space-y-3">...</div>`;
                 } else if (workoutType.startsWith('Strength')) {
                     const type = workoutType.endsWith('A') ? 'A' : 'B';
                     const exercises = planData.strengthWorkouts[type];
-                    content = `
-                        <p>Perform 2-3 sets of 10-15 repetitions for each exercise unless noted.</p>
-                        <ul class="space-y-3 pt-2">
-                            ${exercises.map(ex => `
-                                <li class="border-t border-gray-200 pt-3">
-                                    <strong class="text-gray-700">${ex.name}</strong>
-                                    <p class="text-sm">${ex.desc}</p>
-                                </li>
-                            `).join('')}
-                        </ul>`;
+                    content = `<ul class="divide-y divide-gray-700">...</ul>`;
                 } else { // Rest
+                    content = `<p>Rest is crucial for recovery and muscle repair...</p>`;
+                }
+                
+                // Re-populating the full content for clarity in the final implementation
+                if (workoutType === 'Interval Run') {
+                    content = `<div class="space-y-3"><div><strong class="text-gray-200">Warm-up:</strong> 10-15 minutes of easy jogging.</div><div><strong class="text-gray-200">Workout:</strong> ${weekData.intervalReps} x 400 meters at goal 5k pace.</div><div><strong class="text-gray-200">Target Pace:</strong> ${planData.paceGuide.displayPace[2]}.</div><div><strong class="text-gray-200">Recovery:</strong> 400 meters of slow jogging or walking between each interval.</div><div><strong class="text-gray-200">Cool-down:</strong> 10-15 minutes of easy jogging.</div></div>`;
+                } else if (workoutType === 'Tempo Run') {
+                     content = `<div class="space-y-3"><div><strong class="text-gray-200">Warm-up:</strong> 10 minutes of easy jogging.</div><div><strong class="text-gray-200">Workout:</strong> Run for ${weekData.tempoMins} minutes at a tempo pace.</div><div><strong class="text-gray-200">Target Pace:</strong> ${planData.paceGuide.displayPace[1]} min/mile. Should feel "comfortably hard".</div><div><strong class="text-gray-200">Cool-down:</strong> 10 minutes of easy jogging.</div></div>`;
+                } else if (workoutType === 'Long Run') {
+                     content = `<div class="space-y-3"><div><strong class="text-gray-200">Workout:</strong> Run for ${weekData.longRunDist} miles.</div><div><strong class="text-gray-200">Target Pace:</strong> ${planData.paceGuide.displayPace[0]} or ${planData.paceGuide.displayPace[3]} min/mile. Keep it easy and conversational.</div><div><strong class="text-gray-200">Purpose:</strong> Build endurance. The goal is to cover the distance, not to run it fast.</div></div>`;
+                } else if (workoutType.startsWith('Strength')) {
+                    const type = workoutType.endsWith('A') ? 'A' : 'B';
+                    const exercises = planData.strengthWorkouts[type];
+                    content = `<ul class="divide-y divide-gray-700">${exercises.map(ex => `<li class="flex justify-between items-center py-4"><div class="flex-grow pr-4"><strong class="block text-base font-medium text-gray-100">${ex.name}</strong><p class="text-sm text-gray-400">${ex.desc}</p></div><div class="text-right flex-shrink-0 w-24"><p class="text-base font-semibold text-amber-400">${ex.sets} sets</p><p class="text-sm text-gray-400">${ex.reps} reps</p></div></li>`).join('')}</ul>`;
+                } else {
                     content = `<p>Rest is crucial for recovery and muscle repair. You can do some light activity like walking or stretching, but avoid strenuous exercise.</p>`;
                 }
 
-                modalBody.innerHTML = content;
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                modalContent.classList.remove('scale-95');
-            }
 
-            function hideModal() {
-                modal.classList.add('opacity-0', 'pointer-events-none');
-                modalContent.classList.add('scale-95');
+                return `
+                    <div class="workout-description">${content}</div>
+                    <div class="log-section mt-6 pt-6 border-t border-gray-600">
+                        <h5 class="text-lg font-bold text-gray-100 mb-4">Log Your Workout</h5>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <input id="log-completed-${logKey}" type="checkbox" ${log.completed ? 'checked' : ''} class="h-5 w-5 rounded border-gray-500 text-amber-600 focus:ring-amber-500">
+                                <label for="log-completed-${logKey}" class="ml-3 block text-sm font-medium text-gray-200">Mark as Complete</label>
+                            </div>
+                            ${logInputs}
+                            <div>
+                                <label for="log-notes-${logKey}" class="block text-sm font-medium text-gray-300">Notes</label>
+                                <textarea id="log-notes-${logKey}" rows="3" class="mt-1 block w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2">${log.notes || ''}</textarea>
+                            </div>
+                            <div class="flex justify-end items-center">
+                                <span id="save-confirm-${logKey}" class="text-green-400 text-sm mr-4 opacity-0 transition-opacity">Saved!</span>
+                                <button class="save-log-btn bg-amber-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-700 transition-colors" data-log-key="${logKey}">Save Log</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
             
-            // Event Listeners
             prevBtn.addEventListener('click', () => {
                 if (currentWeekIndex > 0) {
                     currentWeekIndex--;
@@ -315,41 +290,58 @@
             });
 
             carouselTrack.addEventListener('click', (e) => {
-                const card = e.target.closest('[data-day-index]');
-                if (card) {
-                    const dayIndex = parseInt(card.dataset.dayIndex);
-                    const weekIndex = parseInt(card.dataset.weekIndex);
-                    showModal(dayIndex, weekIndex);
-                }
-            });
+                const header = e.target.closest('.day-header');
+                if (header) {
+                    const weekIndex = parseInt(header.dataset.weekIndex);
+                    const dayIndex = parseInt(header.dataset.dayIndex);
+                    
+                    const slide = header.closest('.carousel-slide');
+                    const detailsContainer = slide.querySelector(`#details-container-week-${weekIndex}`);
+                    
+                    const wasActive = header.classList.contains('active-day');
 
-            closeModalBtn.addEventListener('click', hideModal);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    hideModal();
+                    slide.querySelectorAll('.day-header').forEach(h => h.classList.remove('active-day'));
+
+                    if (wasActive) {
+                        detailsContainer.style.maxHeight = '0px';
+                    } else {
+                        header.classList.add('active-day');
+                        const content = generateWorkoutDetailContent(dayIndex, weekIndex);
+                        detailsContainer.innerHTML = `<div class="p-6 bg-gray-700 rounded-lg">${content}</div>`;
+                        detailsContainer.style.maxHeight = detailsContainer.scrollHeight + 'px';
+                    }
                 }
-            });
-            
-            strengthA_Tab.addEventListener('click', () => {
-                renderStrengthContent('A');
-                strengthA_Tab.classList.add('border-amber-600', 'text-amber-600');
-                strengthA_Tab.classList.remove('border-transparent', 'text-gray-500');
-                strengthB_Tab.classList.add('border-transparent', 'text-gray-500');
-                strengthB_Tab.classList.remove('border-amber-600', 'text-amber-600');
-            });
-            
-            strengthB_Tab.addEventListener('click', () => {
-                renderStrengthContent('B');
-                strengthB_Tab.classList.add('border-amber-600', 'text-amber-600');
-                strengthB_Tab.classList.remove('border-transparent', 'text-gray-500');
-                strengthA_Tab.classList.add('border-transparent', 'text-gray-500');
-                strengthA_Tab.classList.remove('border-amber-600', 'text-amber-600');
+
+                if (e.target.classList.contains('save-log-btn')) {
+                    const logKey = e.target.dataset.logKey;
+                    const [weekIndex, dayIndex] = logKey.split('-');
+                    const log = workoutLogs[logKey] || {};
+
+                    log.completed = document.getElementById(`log-completed-${logKey}`).checked;
+                    log.notes = document.getElementById(`log-notes-${logKey}`).value;
+                    
+                    const distInput = document.getElementById(`log-dist-${logKey}`);
+                    if (distInput) log.distance = distInput.value;
+
+                    const timeInput = document.getElementById(`log-time-${logKey}`);
+                    if (timeInput) log.time = timeInput.value;
+
+                    workoutLogs[logKey] = log;
+                    saveLogs();
+                    
+                    const saveConfirm = document.getElementById(`save-confirm-${logKey}`);
+                    saveConfirm.classList.remove('opacity-0');
+                    setTimeout(() => saveConfirm.classList.add('opacity-0'), 2000);
+
+                    renderCarousel();
+                    updateCarousel();
+                }
             });
 
             // Initial render
             renderCarousel();
             updateCarousel();
-            renderStrengthContent('A');
+            
             window.addEventListener('resize', updateCarousel);
         });
     </script>
