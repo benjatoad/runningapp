@@ -51,7 +51,6 @@ window.trainingPlanData = {
         { name: "Toe Touches", desc: "Stand with feet shoulder-width apart. Hinge at your hips and reach down towards your toes, keeping your legs relatively straight. Hold briefly and return." },
         { name: "Straight Leg Raises", desc: "Lie on your back. Keeping one leg straight on the ground, raise the other straight up until you feel a stretch. 10-15 raises per leg." },
         { name: "High Knees", desc: "Run in place or move forward, bringing your knees up towards your chest. Keep your core engaged. Do for 30 seconds." },
-        { name: "Butt Kicks", desc: "Run in place or move forward, kicking your heels up towards your glutes. Do for 30 seconds." },
         { name: "Hurdler Hamstring Stretch", desc: "Sit on the ground with one leg extended straight, and the other bent with the sole of your foot against your inner thigh. Gently lean forward over the straight leg. Hold for 20-30 seconds per side." }
     ],
 
