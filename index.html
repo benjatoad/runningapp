@@ -233,6 +233,7 @@
             }
 
             const App = {
+                windowWidth: 0,
                 currentWeekIndex: 0,
                 activeChart: null,
                 workoutLogs: {},
@@ -265,6 +266,7 @@
 
                 init() {
                     this.getDOMElements();
+                    this.windowWidth = window.innerWidth;
                     this.loadLogsFromStorage();
                     this.addEventListeners();
                     this.updateHeaders();
@@ -307,6 +309,11 @@
                 },
                 
                 handleResize() {
+                    if (window.innerWidth === this.windowWidth) {
+                        return; // Exit if width hasn't changed
+                    }
+                    this.windowWidth = window.innerWidth;
+
                     const openDetails = this.dom.carouselTrack.querySelector('.details-panel.open');
                     if (openDetails) {
                         openDetails.classList.remove('open');
