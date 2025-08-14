@@ -64,7 +64,7 @@ window.trainingPlanData = {
         { name: "High Knees", desc: "Run in place or move forward, bringing your knees up towards your chest. Keep your core engaged. Do for 30 seconds." },
         { name: "Leg Swings (Forward & Sideways)", desc: "Hold onto something for balance and swing each leg forward/backward and side-to-side. 10-12 swings each direction." },
         { name: "Torso Twists", desc: "Stand with feet shoulder-width apart and twist your upper body from side to side. 10-12 twists each side." },
-        { name: "Arm Circles", desc: "Extend your arms to the side and make small circles, gradually getting bigger. 10-15 circles forward and backward." }
+
     ],
 
     cooldownStretches: [
