@@ -391,7 +391,7 @@
                     const isToday = dayIndex === this.todayIndex;
                     const todayClass = isToday ? 'current-day-highlight' : '';
                     const headerHTML = `<div class="day-header p-3 rounded-lg shadow-sm cursor-pointer transition-all duration-300 hover:bg-gray-600/50 ${bgColor} ${todayClass} flex flex-col justify-center text-center min-h-[100px] gap-1 relative" data-day-index="${dayIndex}" data-week-index="${weekIndex}"><p class="font-bold ${isCompleted ? 'text-gray-200' : 'text-gray-400'} text-xs uppercase">${dayName}</p><h4 class="text-lg font-semibold ${textColor}">${workoutType}</h4>${checkmark}</div>`;
-                    return viewType === 'mobile' ? `<div class="day-wrapper-mobile rounded-lg overflow-hidden ${isCompleted ? 'bg-green-600' : 'bg-gray-700/50'}">${headerHTML}<div class="details-panel mobile-details"></div></div>` : headerHTML;
+                    return viewType === 'mobile' ? `<div class="day-wrapper-mobile rounded-lg ${isCompleted ? 'bg-green-600' : 'bg-gray-700/50'}">${headerHTML}<div class="details-panel mobile-details"></div></div>` : headerHTML;
                 },
 
                 updateCarousel() {
