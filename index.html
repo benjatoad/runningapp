@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chosen Palette: Warm Neutrals -->
     <!-- Application Structure Plan: A week-based carousel is the primary navigation. Each slide is a self-contained weekly dashboard showing goals and the daily schedule. This consolidates information, creating a focused, step-by-step user flow. Workout details are now in a full-width accordion/dropdown below the weekly grid for better readability. -->
-    <!-- Visualization & Content Choices: 1. Carousel: For week-to-week navigation. 2. Full-Width Accordion: Replaces the inline dropdown. Clicking a day expands its details in a shared container below the 7-day grid. This improves layout and readability. The active day is highlighted. 3. Workout Logging: Added a "Mark as Complete" checkbox, metric inputs, and a notes field to each workout detail view. Data is saved to localStorage. 4. Progress Indicator: A checkmark appears on completed days. -->
+    <!-- Visualization & Content Choices: 1. Carousel: For week-to-week navigation. 2. Full-Width Accordion: Replaces the inline dropdown. Clicking a day expands its details in a shared container below the 7-day grid. The active day is highlighted. 3. Workout Logging: Added a "Mark as Complete" checkbox, metric inputs, and a notes field to each workout detail view. Data is saved to localStorage. 4. Progress Indicator: Completed days now have a green background. Weekly and total progress bars have been added. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         html {
@@ -44,6 +44,9 @@
         .day-header.active-day h4, .day-header.active-day p {
             color: #1f2937; /* gray-800 */
         }
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -53,6 +56,12 @@
         <header class="text-center mb-8 md:mb-12 relative">
             <h1 class="text-3xl md:text-5xl font-bold text-gray-100">Your 8-Week Training Plan</h1>
             <p class="text-lg md:text-xl text-gray-400 mt-2">To a Sub-25min 5k & Sub-60min 10k</p>
+            <div class="mt-6 max-w-2xl mx-auto">
+                <div class="w-full bg-gray-700 rounded-full h-2.5">
+                    <div id="total-progress-bar" class="bg-green-500 h-2.5 rounded-full progress-bar" style="width: 0%"></div>
+                </div>
+                <p id="total-progress-text" class="text-sm text-gray-400 mt-1 text-right">Overall Progress: 0%</p>
+            </div>
         </header>
 
         <main>
@@ -117,17 +126,27 @@
             const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
             const workoutTypes = ['Interval Run', 'Strength A', 'Tempo Run', 'Strength B', 'Rest', 'Long Run', 'Rest'];
             const totalWeeks = planData.weeklyPlan.length;
+            const totalWorkouts = totalWeeks * daysOfWeek.length;
 
             const carouselTrack = document.getElementById('carousel-track');
             const dotsContainer = document.getElementById('carousel-dots');
             const prevBtn = document.getElementById('prev-btn');
             const nextBtn = document.getElementById('next-btn');
+            const totalProgressBar = document.getElementById('total-progress-bar');
+            const totalProgressText = document.getElementById('total-progress-text');
             
             let currentWeekIndex = 0;
             let workoutLogs = JSON.parse(localStorage.getItem('workoutLogs')) || {};
 
             function saveLogs() {
                 localStorage.setItem('workoutLogs', JSON.stringify(workoutLogs));
+            }
+
+            function updateProgress() {
+                const completedCount = Object.values(workoutLogs).filter(log => log.completed).length;
+                const totalPercentage = (completedCount / totalWorkouts) * 100;
+                totalProgressBar.style.width = `${totalPercentage}%`;
+                totalProgressText.textContent = `Overall Progress: ${Math.round(totalPercentage)}%`;
             }
 
             function renderCarousel() {
@@ -137,8 +156,20 @@
                 planData.weeklyPlan.forEach((weekData, index) => {
                     const slide = document.createElement('div');
                     slide.className = 'carousel-slide p-2';
+
+                    let completedInWeek = 0;
+                    for (let i = 0; i < daysOfWeek.length; i++) {
+                        if (workoutLogs[`${index}-${i}`] && workoutLogs[`${index}-${i}`].completed) {
+                            completedInWeek++;
+                        }
+                    }
+                    const weeklyPercentage = (completedInWeek / daysOfWeek.length) * 100;
+
                     slide.innerHTML = `
-                        <h2 class="text-2xl font-bold text-amber-400 mb-4 text-center">Week ${index + 1}</h2>
+                        <h2 class="text-2xl font-bold text-amber-400 mb-2 text-center">Week ${index + 1}</h2>
+                        <div class="w-full bg-gray-600 rounded-full h-2 mb-4">
+                            <div class="bg-green-500 h-2 rounded-full progress-bar" style="width: ${weeklyPercentage}%"></div>
+                        </div>
                         <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                             <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Intervals</p><p class="font-bold text-xl text-gray-100">${weekData.intervalReps} x 400m</p></div>
                             <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Tempo</p><p class="font-bold text-xl text-gray-100">${weekData.tempoMins} mins</p></div>
@@ -149,18 +180,16 @@
                             ${daysOfWeek.map((day, dayIndex) => {
                                 const workoutType = workoutTypes[dayIndex];
                                 const isRest = workoutType === 'Rest';
-                                const bgColor = isRest ? 'bg-gray-700' : 'bg-gray-700/50';
                                 const logKey = `${index}-${dayIndex}`;
                                 const isCompleted = workoutLogs[logKey] && workoutLogs[logKey].completed;
+                                let bgColor = isRest ? 'bg-gray-700' : 'bg-gray-700/50';
+                                if (isCompleted) {
+                                    bgColor = 'bg-green-600 hover:bg-green-700';
+                                }
                                 return `
-                                <div class="day-header p-4 rounded-lg shadow-sm cursor-pointer transition-colors hover:bg-gray-600/50 ${bgColor}" data-day-index="${dayIndex}" data-week-index="${index}">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <p class="font-bold text-gray-400 text-sm">${day.toUpperCase()}</p>
-                                            <h4 class="text-xl font-semibold mt-1 ${isRest ? 'text-gray-400' : 'text-amber-400'}">${workoutType}</h4>
-                                        </div>
-                                        ${isCompleted ? '<span class="text-green-400 text-2xl">&#10003;</span>' : ''}
-                                    </div>
+                                <div class="day-header p-4 rounded-lg shadow-sm cursor-pointer transition-colors hover:bg-gray-600/50 ${bgColor} flex flex-col justify-center text-center min-h-[110px] gap-1" data-day-index="${dayIndex}" data-week-index="${index}">
+                                    <p class="font-bold ${isCompleted ? 'text-gray-200' : 'text-gray-400'} text-sm">${day.toUpperCase()}</p>
+                                    <h4 class="text-xl font-semibold ${isCompleted ? 'text-white' : (isRest ? 'text-gray-400' : 'text-amber-400')}">${workoutType}</h4>
                                 </div>`;
                             }).join('')}
                         </div>
@@ -302,7 +331,6 @@
 
                 if (e.target.classList.contains('save-log-btn')) {
                     const logKey = e.target.dataset.logKey;
-                    const [weekIndex, dayIndex] = logKey.split('-');
                     const log = workoutLogs[logKey] || {};
 
                     log.completed = document.getElementById(`log-completed-${logKey}`).checked;
@@ -323,12 +351,14 @@
 
                     renderCarousel();
                     updateCarousel();
+                    updateProgress();
                 }
             });
 
             // Initial render
             renderCarousel();
             updateCarousel();
+            updateProgress();
             
             window.addEventListener('resize', updateCarousel);
         });
