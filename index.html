@@ -12,11 +12,7 @@
     
     <!-- Link to the external plan data file. This will be used when running locally. -->
     <script>
-        (function() {
-            var script = document.createElement('script');
-            script.src = 'plan.js?' + new Date().getTime();
-            document.head.appendChild(script);
-        })();
+        document.write('<script src="plan.js?' + new Date().getTime() + '"><\/script>');
     </script>
 
     <style>
