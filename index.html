@@ -64,7 +64,7 @@
             transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
         }
         /* Tab styles */
-        .tab-btn.active {
+        .tab-btn.active, .stretch-tab-btn.active {
             border-color: #fbbf24; /* amber-400 */
             color: #fbbf24;
         }
@@ -135,6 +135,33 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Stretch Routine Section -->
+            <section id="stretch-section" class="mt-8 md:mt-12 bg-gray-800 p-4 sm:p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold text-amber-400 mb-4 text-center">Stretch Routines</h2>
+                
+                <!-- Stretch Tabs -->
+                <div class="mb-4 border-b border-gray-700">
+                    <nav class="-mb-px flex space-x-6 justify-center" aria-label="Stretch Tabs">
+                        <button id="tab-warmup" class="stretch-tab-btn active whitespace-nowrap py-3 px-1 border-b-2 font-medium text-base text-gray-400 hover:text-gray-200 hover:border-gray-500">
+                            Warm-up
+                        </button>
+                        <button id="tab-cooldown" class="stretch-tab-btn whitespace-nowrap py-3 px-1 border-b-2 border-transparent font-medium text-base text-gray-400 hover:text-gray-200 hover:border-gray-500">
+                            Cool-down
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Stretch Content -->
+                <div>
+                    <div id="stretch-content-warmup" class="stretch-content">
+                        <!-- Warm-up stretches will be populated by JS -->
+                    </div>
+                    <div id="stretch-content-cooldown" class="stretch-content hidden">
+                        <!-- Cool-down stretches will be populated by JS -->
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -153,8 +180,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- Fallback Data ---
-            // If plan.js is not loaded (e.g., in a preview environment), use this default data.
-            // This ensures the application is still functional in the preview.
             if (typeof window.trainingPlanData === 'undefined') {
                 console.warn("plan.js not found. Using fallback data. This is expected in the preview environment.");
                 window.trainingPlanData = {
@@ -171,38 +196,38 @@
                         'A': [
                             { name: 'Goblet Squats', desc: 'Hold a weight at your chest. Squat down keeping your chest up and back straight.', sets: '2-3', reps: '10-15' },
                             { name: 'Walking Lunges', desc: 'Step forward into a lunge, then push off and step into the next lunge with the other leg.', sets: '2-3', reps: '10-15/leg' },
-                            { name: 'Glute Bridges', desc: 'Lie on your back, knees bent. Lift hips until your body is in a straight line from shoulders to knees.', sets: '2-3', reps: '10-15' },
-                            { name: 'Plank', desc: 'Hold a push-up position with a flat back and engaged core.', sets: '2-3', reps: '30-60s' },
-                            { name: 'Calf Raises', desc: 'Stand on a flat surface and raise your heels up, then lower them back down.', sets: '2-3', reps: '10-15' },
                         ],
                         'B': [
                             { name: 'Single-Leg Deadlifts', desc: 'Stand on one leg, hinge at your hips, extending the other leg straight behind you.', sets: '2-3', reps: '10-15/leg' },
-                            { name: 'Step-Ups', desc: 'Use a bench or sturdy chair. Step up with one foot, then the other. Alternate lead leg.', sets: '2-3', reps: '10-15/leg' },
                             { name: 'Push-ups', desc: 'Perform standard push-ups, or modified on your knees if needed.', sets: '2-3', reps: '10-15' },
-                            { name: 'Dumbbell Rows', desc: 'Lean on a bench. Pull a dumbbell up towards your chest, keeping your elbow close.', sets: '2-3', reps: '10-15/arm' },
-                            { name: 'Russian Twists', desc: 'Sit with knees bent, feet off the ground. Twist your torso from side to side.', sets: '2-3', reps: '10-15/side' },
                         ]
                     },
                     weeklyPlan: [
                         { intervalReps: 6, tempoMins: 20, longRunDist: 3.5 }, { intervalReps: 7, tempoMins: 25, longRunDist: 4.0 },
                         { intervalReps: 8, tempoMins: 30, longRunDist: 4.5 }, { intervalReps: 9, tempoMins: 35, longRunDist: 5.0 },
-                        { intervalReps: 10, tempoMins: 40, longRunDist: 5.5 }, { intervalReps: 11, tempoMins: 40, longRunDist: 6.0 },
-                        { intervalReps: 12, tempoMins: 30, longRunDist: 6.5 }, { intervalReps: 8, tempoMins: 20, longRunDist: 7.0 },
+                    ],
+                    warmupStretches: [
+                        { name: "Leg Swings", desc: "Hold onto something for balance. Swing one leg forward and backward, then side to side. 10-15 swings per leg." },
+                        { name: "High Knees", desc: "Run in place, bringing your knees up towards your chest. 30 seconds." },
+                        { name: "Butt Kicks", desc: "Run in place, kicking your heels up towards your glutes. 30 seconds." },
+                        { name: "Walking Lunges", desc: "Step forward into a lunge, keeping your front knee over your ankle. 10 lunges per leg." }
+                    ],
+                    cooldownStretches: [
+                        { name: "Quad Stretch", desc: "Stand on one leg, pull the other foot towards your glute. Hold for 30 seconds per leg." },
+                        { name: "Hamstring Stretch", desc: "Sit on the floor with one leg extended, the other bent. Reach for your extended foot. Hold for 30 seconds per leg." },
+                        { name: "Calf Stretch", desc: "Stand facing a wall with your hands on it. Step one foot back and press the heel to the floor. Hold for 30 seconds per leg." },
+                        { name: "Glute Stretch (Pigeon Pose)", desc: "From a plank position, bring one knee forward towards the opposite hand. Hold for 30 seconds per side." }
                     ]
                 };
             }
 
             // --- App State and Configuration ---
             const App = {
-                // UI State
                 currentWeekIndex: 0,
                 activeChart: null,
-
-                // Data
                 workoutLogs: {},
-                planData: window.trainingPlanData, // Load data from global scope
+                planData: window.trainingPlanData,
 
-                // --- DOM Elements ---
                 getDOMElements() {
                     this.dom = {
                         planTitle: document.getElementById('plan-title'),
@@ -213,11 +238,16 @@
                         nextBtn: document.getElementById('next-btn'),
                         totalProgressBar: document.getElementById('total-progress-bar'),
                         totalProgressText: document.getElementById('total-progress-text'),
-                        // Tabs
+                        // Main Tabs
                         tabPlan: document.getElementById('tab-plan'),
                         tabProgress: document.getElementById('tab-progress'),
                         contentPlan: document.getElementById('tab-content-plan'),
                         contentProgress: document.getElementById('tab-content-progress'),
+                        // Stretch Tabs
+                        tabWarmup: document.getElementById('tab-warmup'),
+                        tabCooldown: document.getElementById('tab-cooldown'),
+                        contentWarmup: document.getElementById('stretch-content-warmup'),
+                        contentCooldown: document.getElementById('stretch-content-cooldown'),
                         // Modals
                         resetModal: document.getElementById('reset-modal'),
                         resetBtn: document.getElementById('reset-btn'),
@@ -226,7 +256,6 @@
                     };
                 },
 
-                // --- Initialization ---
                 init() {
                     this.getDOMElements();
                     this.loadLogsFromStorage();
@@ -239,8 +268,7 @@
                     this.dom.planTitle.textContent = this.planData.title;
                     this.dom.planSubtitle.textContent = this.planData.subtitle;
                 },
-
-                // --- Data Handling ---
+                
                 loadLogsFromStorage() {
                     const key = `workoutLogs_${this.planData.id}`;
                     this.workoutLogs = JSON.parse(localStorage.getItem(key)) || {};
@@ -251,7 +279,6 @@
                     localStorage.setItem(key, JSON.stringify(this.workoutLogs));
                 },
 
-                // --- Event Listeners ---
                 addEventListeners() {
                     this.dom.prevBtn.addEventListener('click', () => this.changeWeek(-1));
                     this.dom.nextBtn.addEventListener('click', () => this.changeWeek(1));
@@ -264,24 +291,33 @@
                     this.dom.carouselTrack.addEventListener('click', (e) => this.handleCarouselClick(e));
                     window.addEventListener('resize', () => this.updateCarousel());
 
-                    // Tabs
                     this.dom.tabPlan.addEventListener('click', () => this.switchTab('plan'));
                     this.dom.tabProgress.addEventListener('click', () => this.switchTab('progress'));
+                    
+                    this.dom.tabWarmup.addEventListener('click', () => this.switchStretchTab('warmup'));
+                    this.dom.tabCooldown.addEventListener('click', () => this.switchStretchTab('cooldown'));
 
-                    // Modals
                     this.dom.resetBtn.addEventListener('click', () => this.toggleModal('reset-modal', true));
                     this.dom.cancelResetBtn.addEventListener('click', () => this.toggleModal('reset-modal', false));
                     this.dom.confirmResetBtn.addEventListener('click', () => this.resetProgress());
                 },
 
-                // --- Rendering and UI Updates ---
                 render() {
                     this.renderCarousel();
                     this.updateCarousel();
                     this.updateProgress();
                     this.renderProgressChart();
+                    this.renderStretchRoutines();
                 },
                 
+                renderStretchRoutines() {
+                    const createStretchList = (stretches) => {
+                        return `<ul class="divide-y divide-gray-700">${stretches.map(s => `<li class="py-3"><strong class="block text-base font-medium text-gray-100">${s.name}</strong><p class="text-sm text-gray-400">${s.desc}</p></li>`).join('')}</ul>`;
+                    };
+                    this.dom.contentWarmup.innerHTML = createStretchList(this.planData.warmupStretches);
+                    this.dom.contentCooldown.innerHTML = createStretchList(this.planData.cooldownStretches);
+                },
+
                 renderCarousel() {
                     this.dom.carouselTrack.innerHTML = '';
                     this.dom.dotsContainer.innerHTML = '';
@@ -431,7 +467,6 @@
                     });
                 },
 
-                // --- UI Actions and Logic ---
                 changeWeek(direction) {
                     const newIndex = this.currentWeekIndex + direction;
                     if (newIndex >= 0 && newIndex < this.planData.weeklyPlan.length) {
@@ -452,6 +487,20 @@
                         this.dom.tabPlan.classList.remove('active');
                         this.dom.tabProgress.classList.add('active');
                         this.renderProgressChart();
+                    }
+                },
+                
+                switchStretchTab(tabName) {
+                    if (tabName === 'warmup') {
+                        this.dom.contentWarmup.classList.remove('hidden');
+                        this.dom.contentCooldown.classList.add('hidden');
+                        this.dom.tabWarmup.classList.add('active');
+                        this.dom.tabCooldown.classList.remove('active');
+                    } else {
+                        this.dom.contentWarmup.classList.add('hidden');
+                        this.dom.contentCooldown.classList.remove('hidden');
+                        this.dom.tabWarmup.classList.remove('active');
+                        this.dom.tabCooldown.classList.add('active');
                     }
                 },
 
@@ -582,7 +631,6 @@
                     this.render();
                 },
 
-                // --- Modal Handling ---
                 toggleModal(modalId, show) {
                     const modal = document.getElementById(modalId);
                     const content = modal.querySelector('.modal-content');
