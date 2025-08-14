@@ -214,22 +214,7 @@
                         </div>
                     `;
                 }
-
-                if (workoutType === 'Interval Run') {
-                    content = `<div class="space-y-3">...</div>`; // Content omitted for brevity, logic remains the same
-                } else if (workoutType === 'Tempo Run') {
-                     content = `<div class="space-y-3">...</div>`;
-                } else if (workoutType === 'Long Run') {
-                     content = `<div class="space-y-3">...</div>`;
-                } else if (workoutType.startsWith('Strength')) {
-                    const type = workoutType.endsWith('A') ? 'A' : 'B';
-                    const exercises = planData.strengthWorkouts[type];
-                    content = `<ul class="divide-y divide-gray-700">...</ul>`;
-                } else { // Rest
-                    content = `<p>Rest is crucial for recovery and muscle repair...</p>`;
-                }
                 
-                // Re-populating the full content for clarity in the final implementation
                 if (workoutType === 'Interval Run') {
                     content = `<div class="space-y-3"><div><strong class="text-gray-200">Warm-up:</strong> 10-15 minutes of easy jogging.</div><div><strong class="text-gray-200">Workout:</strong> ${weekData.intervalReps} x 400 meters at goal 5k pace.</div><div><strong class="text-gray-200">Target Pace:</strong> ${planData.paceGuide.displayPace[2]}.</div><div><strong class="text-gray-200">Recovery:</strong> 400 meters of slow jogging or walking between each interval.</div><div><strong class="text-gray-200">Cool-down:</strong> 10-15 minutes of easy jogging.</div></div>`;
                 } else if (workoutType === 'Tempo Run') {
@@ -308,7 +293,10 @@
                         header.classList.add('active-day');
                         const content = generateWorkoutDetailContent(dayIndex, weekIndex);
                         detailsContainer.innerHTML = `<div class="p-6 bg-gray-700 rounded-lg">${content}</div>`;
-                        detailsContainer.style.maxHeight = detailsContainer.scrollHeight + 'px';
+                        
+                        requestAnimationFrame(() => {
+                            detailsContainer.style.maxHeight = detailsContainer.scrollHeight + 'px';
+                        });
                     }
                 }
 
