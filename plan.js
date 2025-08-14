@@ -57,12 +57,14 @@ window.trainingPlanData = {
     ],
 
     warmupStretches: [
+        { name: "Calf Stretch", desc: "Stand facing a wall with your hands on it. Step one foot back and press the heel to the floor. Hold for 30 seconds per leg." },
+        { name: "Hurdler Stretch", desc: "Sit down with one leg tucked in to form a triangle and touch your opposite hand to your extended leg. Hold for 30 seconds per leg." },
+        { name: "Toe-touches", desc: "Bend at the hips to touch your toes. Make sure your knees stay straight. Hold for 30 seconds." },
         { name: "Jumping Jacks", desc: "Start with feet together and arms at your sides, then jump while spreading your legs and bringing your arms overhead. 30 seconds." },
         { name: "High Knees", desc: "Run in place or move forward, bringing your knees up towards your chest. Keep your core engaged. Do for 30 seconds." },
         { name: "Leg Swings (Forward & Sideways)", desc: "Hold onto something for balance and swing each leg forward/backward and side-to-side. 10-12 swings each direction." },
         { name: "Torso Twists", desc: "Stand with feet shoulder-width apart and twist your upper body from side to side. 10-12 twists each side." },
-        { name: "Calf Stretch FRFR Electric Boogaloo", desc: "Lorem ipsum dolor sit amet" },
-        { name: "Arm Circles", desc: "Extend your arms to the side and make small circles, gradually getting bigger. 10-15 circles forward and backward." }
+
     ],
 
     cooldownStretches: [

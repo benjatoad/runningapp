@@ -11,7 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Link to the external plan data file. This will be used when running locally. -->
-    <script src="plan.js"></script>
+    <script>
+        document.write('<script src="plan.js?' + new Date().getTime() + '"><\/script>');
+    </script>
 
     <style>
         html { scroll-behavior: smooth; }
@@ -183,32 +185,41 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- Fallback Data ---
+            // This data is used if plan.js is not found. It's essential for previews and offline use.
             if (typeof window.trainingPlanData === 'undefined') {
                 console.warn("plan.js not found. Using fallback data. This is expected in the preview environment.");
                 window.trainingPlanData = {
-                    id: "sub25_5k_sub60_10k_v1",
+                    id: "sub25_5k_sub60_10k_v2",
                     title: "Your 8-Week Training Plan",
                     subtitle: "To a Sub-25min 5k & Sub-60min 10k",
                     daysOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-                    workoutTypes: ['Interval Run', 'Strength A', 'Tempo Run', 'Strength B', 'Rest', 'Long Run', 'Rest'],
+                    workoutTypes: ['Interval Run', 'Upper Push', 'Tempo Run', 'Upper Pull', 'Legs & Core', 'Long Run', 'Rest'],
                     paceGuide: {
                         labels: ['Easy Run', 'Tempo Run', 'Interval (400m)', 'Long Run'],
                         displayPace: ['11:00-12:00', '9:30-10:00', '2:00-2:05/lap', '11:30-12:30']
                     },
                     strengthWorkouts: {
-                        'A': [
-                            { name: 'Goblet Squats', desc: 'Hold a weight at your chest. Squat down keeping your chest up and back straight.', sets: '2-3', reps: '10-15' },
-                            { name: 'Walking Lunges', desc: 'Step forward into a lunge, then push off and step into the next lunge with the other leg.', sets: '2-3', reps: '10-15/leg' },
-                            { name: 'Glute Bridges', desc: 'Lie on your back, knees bent. Lift hips until your body is in a straight line from shoulders to knees.', sets: '2-3', reps: '10-15' },
-                            { name: 'Plank', desc: 'Hold a push-up position with a flat back and engaged core.', sets: '2-3', reps: '30-60s' },
-                            { name: 'Calf Raises', desc: 'Stand on a flat surface and raise your heels up, then lower them back down.', sets: '2-3', reps: '10-15' },
+                        'Legs & Core': [
+                            { name: 'Goblet Squats', desc: 'Hold a weight at your chest. Squat down keeping your chest up and back straight.', sets: '3-4', reps: '8-12' },
+                            { name: 'Romanian Deadlifts', desc: 'Hold a barbell or dumbbells. Hinge at your hips, keeping your back straight and legs almost straight.', sets: '3-4', reps: '8-12' },
+                            { name: 'Walking Lunges', desc: 'Step forward into a lunge, then push off and step into the next lunge with the other leg.', sets: '3', reps: '10-12/leg' },
+                            { name: 'Plank', desc: 'Hold a push-up position with a flat back and engaged core.', sets: '3', reps: '45-90s' },
+                            { name: 'Hanging Knee Raises', desc: 'Hang from a bar and raise your knees towards your chest.', sets: '3', reps: '10-15' },
+                            { name: 'Calf Raises', desc: 'Stand on a flat surface and raise your heels up, then lower them back down.', sets: '3', reps: '15-20' },
                         ],
-                        'B': [
-                            { name: 'Single-Leg Deadlifts', desc: 'Stand on one leg, hinge at your hips, extending the other leg straight behind you.', sets: '2-3', reps: '10-15/leg' },
-                            { name: 'Step-Ups', desc: 'Use a bench or sturdy chair. Step up with one foot, then the other. Alternate lead leg.', sets: '2-3', reps: '10-15/leg' },
-                            { name: 'Push-ups', desc: 'Perform standard push-ups, or modified on your knees if needed.', sets: '2-3', reps: '10-15' },
-                            { name: 'Dumbbell Rows', desc: 'Lean on a bench. Pull a dumbbell up towards your chest, keeping your elbow close.', sets: '2-3', reps: '10-15/arm' },
-                            { name: 'Russian Twists', desc: 'Sit with knees bent, feet off the ground. Twist your torso from side to side.', sets: '2-3', reps: '10-15/side' },
+                        'Upper Push': [
+                            { name: 'Push-ups', desc: 'Perform standard push-ups, or modified on your knees if needed. Focus on chest and triceps.', sets: '3-4', reps: 'To failure' },
+                            { name: 'Dumbbell Bench Press', desc: 'Lie on a bench and press dumbbells up from your chest.', sets: '3-4', reps: '8-12' },
+                            { name: 'Overhead Press (Dumbbell)', desc: 'Sit or stand, pressing dumbbells from your shoulders to overhead.', sets: '3-4', reps: '8-12' },
+                            { name: 'Lateral Raises', desc: 'Stand with dumbbells at your sides. Raise them out to the side to shoulder height.', sets: '3', reps: '12-15' },
+                            { name: 'Tricep Dips (on bench)', desc: 'Place hands on a bench behind you, lower your body down and push back up.', sets: '3', reps: '10-15' },
+                        ],
+                        'Upper Pull': [
+                            { name: 'Pull-ups / Assisted Pull-ups', desc: 'Use a wide grip to pull your chin over the bar. Use a band for assistance if needed.', sets: '3-4', reps: 'To failure' },
+                            { name: 'Bent Over Rows (Dumbbell)', desc: 'Hinge at the waist with a flat back. Pull dumbbells up towards your lower chest.', sets: '3-4', reps: '8-12' },
+                            { name: 'Face Pulls', desc: 'Use a cable machine or resistance band. Pull the rope towards your face, squeezing your rear delts.', sets: '3', reps: '12-15' },
+                            { name: 'Bicep Curls (Dumbbell)', desc: 'Stand and curl dumbbells from your thighs up to your shoulders.', sets: '3', reps: '10-15' },
+                            { name: 'Reverse Flys', desc: 'Hinge forward with a flat back, arms extended. Open your arms out to the side, squeezing your shoulder blades.', sets: '3', reps: '12-15' },
                         ]
                     },
                     weeklyPlan: [
@@ -219,10 +230,10 @@
                     ],
                     warmupStretches: [
                         { name: "Jumping Jacks", desc: "Start with feet together and arms at your sides, then jump while spreading your legs and bringing your arms overhead. 30 seconds." },
-                        { name: "Toe Touches", desc: "Stand with feet shoulder-width apart. Hinge at your hips and reach down towards your toes, keeping your legs relatively straight. Hold briefly and return." },
-                        { name: "Straight Leg Raises", desc: "Lie on your back. Keeping one leg straight on the ground, raise the other straight up until you feel a stretch. 10-15 raises per leg." },
                         { name: "High Knees", desc: "Run in place or move forward, bringing your knees up towards your chest. Keep your core engaged. Do for 30 seconds." },
-                        { name: "Hurdler Hamstring Stretch", desc: "Sit on the ground with one leg extended straight, and the other bent with the sole of your foot against your inner thigh. Gently lean forward over the straight leg. Hold for 20-30 seconds per side." }
+                        { name: "Leg Swings (Forward & Sideways)", desc: "Hold onto something for balance and swing each leg forward/backward and side-to-side. 10-12 swings each direction." },
+                        { name: "Torso Twists", desc: "Stand with feet shoulder-width apart and twist your upper body from side to side. 10-12 twists each side." },
+                        { name: "Arm Circles", desc: "Extend your arms to the side and make small circles, gradually getting bigger. 10-15 circles forward and backward." }
                     ],
                     cooldownStretches: [
                         { name: "Standing Quad Stretch", desc: "Stand on one leg, pull the other foot towards your glute, feeling a stretch in the front of your thigh. Hold for 30 seconds per leg." },
@@ -361,7 +372,7 @@
                                 <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Intervals</p><p class="font-bold text-xl text-gray-100">${weekData.intervalReps} x 400m</p></div>
                                 <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Tempo</p><p class="font-bold text-xl text-gray-100">${weekData.tempoMins} mins</p></div>
                                 <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Long Run</p><p class="font-bold text-xl text-gray-100">${weekData.longRunDist} miles</p></div>
-                                <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Strength</p><p class="font-bold text-xl text-gray-100">2 sessions</p></div>
+                                <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Strength</p><p class="font-bold text-xl text-gray-100">3 sessions</p></div>
                             </div>
                             <div class="space-y-2 md:hidden">${this.planData.daysOfWeek.map((day, dayIndex) => this.generateDayHTML(index, dayIndex, 'mobile')).join('')}</div>
                             <div class="hidden md:grid md:grid-cols-7 md:gap-2">${this.planData.daysOfWeek.map((day, dayIndex) => this.generateDayHTML(index, dayIndex, 'desktop')).join('')}</div>
@@ -514,9 +525,8 @@
                         content = `<div class="space-y-3"><div><strong class="text-gray-200">Warm-up:</strong> 10 minutes of easy jogging.</div><div><strong class="text-gray-200">Workout:</strong> Run for ${weekData.tempoMins} minutes at a tempo pace.</div><div><strong class="text-gray-200">Target Pace:</strong> ${this.planData.paceGuide.displayPace[1]} min/mile. Should feel "comfortably hard".</div><div><strong class="text-gray-200">Cool-down:</strong> 10 minutes of easy jogging.</div></div>`;
                     } else if (workoutType === 'Long Run') {
                         content = `<div class="space-y-3"><div><strong class="text-gray-200">Workout:</strong> Run for ${weekData.longRunDist} miles.</div><div><strong class="text-gray-200">Target Pace:</strong> ${this.planData.paceGuide.displayPace[0]} or ${this.planData.paceGuide.displayPace[3]} min/mile. Keep it easy and conversational.</div><div><strong class="text-gray-200">Purpose:</strong> Build endurance. The goal is to cover the distance, not to run it fast.</div></div>`;
-                    } else if (workoutType.startsWith('Strength')) {
-                        const type = workoutType.endsWith('A') ? 'A' : 'B';
-                        const exercises = this.planData.strengthWorkouts[type];
+                    } else if (['Legs & Core', 'Upper Push', 'Upper Pull'].includes(workoutType)) {
+                        const exercises = this.planData.strengthWorkouts[workoutType];
                         content = `<ul class="divide-y divide-gray-600">${exercises.map(ex => `<li class="flex justify-between items-center py-4"><div class="flex-grow pr-4"><strong class="block text-base font-medium text-gray-100">${ex.name}</strong><p class="text-sm text-gray-400">${ex.desc}</p></div><div class="text-right flex-shrink-0 w-24"><p class="text-base font-semibold text-amber-400">${ex.sets} sets</p><p class="text-sm text-gray-400">${ex.reps} reps</p></div></li>`).join('')}</ul>`;
                     } else {
                         content = `<p>Rest is crucial for recovery and muscle repair. You can do some light activity like walking or stretching, but avoid strenuous exercise.</p>`;
