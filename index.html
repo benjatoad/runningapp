@@ -520,7 +520,25 @@
                         content = `<p>${workout.details}</p>`;
                         if(this.planData.strengthWorkouts[workoutType]) {
                             const exercises = this.planData.strengthWorkouts[workoutType];
-                            content += `<ul class="divide-y divide-gray-600 mt-4">${exercises.map(ex => `<li class="flex justify-between items-center py-4"><div class="flex-grow pr-4"><strong class="block text-base font-medium text-gray-100">${ex.name}</strong><p class="text-sm text-gray-400">${ex.desc || ''}</p></div><div class="text-right flex-shrink-0 w-24"><p class="text-base font-semibold text-amber-400">${ex.sets} sets</p><p class="text-sm text-gray-400">${ex.reps} reps</p></div></li>`).join('')}</ul>`;
+                            content += `<ul class="divide-y divide-gray-600 mt-4">${exercises.map((ex, exIndex) => {
+                                const exerciseLog = (log.exercises && log.exercises[exIndex]) ? log.exercises[exIndex] : {};
+                                return `<li class="py-4">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-grow pr-4">
+                                            <strong class="block text-base font-medium text-gray-100">${ex.name}</strong>
+                                            <p class="text-sm text-gray-400">${ex.desc || ''}</p>
+                                        </div>
+                                        <div class="text-right flex-shrink-0 w-24">
+                                            <p class="text-base font-semibold text-amber-400">${ex.sets} sets</p>
+                                            <p class="text-sm text-gray-400">${ex.reps} reps</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <label for="log-weight-${logKey}-${exIndex}" class="block text-sm font-medium text-gray-300">Weight (lbs)</label>
+                                        <input type="number" id="log-weight-${logKey}-${exIndex}" value="${exerciseLog.weight || ''}" class="mt-1 block w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2 exercise-weight-input" data-ex-index="${exIndex}">
+                                    </div>
+                                </li>`;
+                            }).join('')}</ul>`;
                         }
                     } else {
                         workoutType = this.planData.workoutTypes[dayIndex];
@@ -533,7 +551,25 @@
                             content = `<div class="space-y-3"><div><strong class="text-gray-200">Workout:</strong> Run for ${weekData.longRunDist} miles.</div><div><strong class="text-gray-200">Target Pace:</strong> ${this.planData.paceGuide.displayPace[0]} or ${this.planData.paceGuide.displayPace[3]} min/mile. Keep it easy and conversational.</div><div><strong class="text-gray-200">Purpose:</strong> Build endurance. The goal is to cover the distance, not to run it fast.</div></div>`;
                         } else if (['Legs & Core', 'Upper Push', 'Upper Pull'].includes(workoutType)) {
                             const exercises = this.planData.strengthWorkouts[workoutType];
-                            content = `<ul class="divide-y divide-gray-600">${exercises.map(ex => `<li class="flex justify-between items-center py-4"><div class="flex-grow pr-4"><strong class="block text-base font-medium text-gray-100">${ex.name}</strong><p class="text-sm text-gray-400">${ex.desc}</p></div><div class="text-right flex-shrink-0 w-24"><p class="text-base font-semibold text-amber-400">${ex.sets} sets</p><p class="text-sm text-gray-400">${ex.reps} reps</p></div></li>`).join('')}</ul>`;
+                            content = `<ul class="divide-y divide-gray-600">${exercises.map((ex, exIndex) => {
+                                const exerciseLog = (log.exercises && log.exercises[exIndex]) ? log.exercises[exIndex] : {};
+                                return `<li class="py-4">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-grow pr-4">
+                                            <strong class="block text-base font-medium text-gray-100">${ex.name}</strong>
+                                            <p class="text-sm text-gray-400">${ex.desc}</p>
+                                        </div>
+                                        <div class="text-right flex-shrink-0 w-24">
+                                            <p class="text-base font-semibold text-amber-400">${ex.sets} sets</p>
+                                            <p class="text-sm text-gray-400">${ex.reps} reps</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <label for="log-weight-${logKey}-${exIndex}" class="block text-sm font-medium text-gray-300">Weight (lbs)</label>
+                                        <input type="number" id="log-weight-${logKey}-${exIndex}" value="${exerciseLog.weight || ''}" class="mt-1 block w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2 exercise-weight-input" data-ex-index="${exIndex}">
+                                    </div>
+                                </li>`;
+                            }).join('')}</ul>`;
                         } else {
                             content = `<p>Rest is crucial for recovery and muscle repair. You can do some light activity like walking or stretching, but avoid strenuous exercise.</p>`;
                         }
@@ -555,6 +591,17 @@
                     if (distInput) log.distance = distInput.value;
                     const timeInput = document.getElementById(`log-time-${logKey}`);
                     if (timeInput) log.time = timeInput.value;
+
+                    const weightInputs = document.querySelectorAll(`#desktop-details-week-${logKey.split('-')[0]} .exercise-weight-input, .day-wrapper-mobile .exercise-weight-input`);
+                    if (weightInputs.length > 0) {
+                        log.exercises = [];
+                        weightInputs.forEach(input => {
+                            if(input.closest('.details-panel.open') || input.closest('.day-wrapper-mobile')) {
+                                log.exercises[input.dataset.exIndex] = { weight: input.value };
+                            }
+                        });
+                    }
+
                     this.workoutLogs[logKey] = log;
                     this.saveLogsToStorage();
                     const saveConfirm = document.getElementById(`save-confirm-${logKey}`);
