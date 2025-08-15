@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Link to the external plan data file. This will be used when running locally. -->
     <script>
         document.write('<script src="plan.js?' + new Date().getTime() + '"><\/script>');
@@ -81,10 +81,19 @@
 <body class="antialiased">
 
     <div id="app" class="container mx-auto p-4 md:p-8 max-w-7xl">
-        
+
         <header class="text-center mb-8 md:mb-12 relative">
             <h1 id="plan-title" class="text-3xl md:text-5xl font-bold text-gray-100">Your 8-Week Training Plan</h1>
             <p id="plan-subtitle" class="text-lg md:text-xl text-gray-400 mt-2">To a Sub-25min 5k & Sub-60min 10k</p>
+
+            <!-- Plan Selector Dropdown -->
+            <div class="mt-4 max-w-xs mx-auto">
+                <label for="plan-selector" class="sr-only">Choose a plan</label>
+                <select id="plan-selector" class="block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-base p-2">
+                    <!-- Options will be populated by JS -->
+                </select>
+            </div>
+
             <div class="mt-6 max-w-2xl mx-auto">
                 <div class="w-full bg-gray-700 rounded-full h-2.5">
                     <div id="total-progress-bar" class="bg-green-500 h-2.5 rounded-full progress-bar" style="width: 0%"></div>
@@ -144,7 +153,7 @@
             <!-- Stretch Routine Section -->
             <section id="stretch-section" class="mt-8 md:mt-12 bg-gray-800 p-4 sm:p-6 rounded-xl shadow-lg">
                 <h2 class="text-2xl font-bold text-amber-400 mb-4 text-center">Stretch Routines</h2>
-                
+
                 <!-- Stretch Tabs -->
                 <div class="mb-4 border-b border-gray-700">
                     <nav class="-mb-px flex space-x-6 justify-center" aria-label="Stretch Tabs">
@@ -181,82 +190,21 @@
             </div>
         </div>
     </div>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Fallback Data ---
-            // This data is used if plan.js is not found. It's essential for previews and offline use.
-            if (typeof window.trainingPlanData === 'undefined') {
-                console.warn("plan.js not found. Using fallback data. This is expected in the preview environment.");
-                window.trainingPlanData = {
-                    id: "sub25_5k_sub60_10k_v2",
-                    title: "Your 8-Week Training Plan",
-                    subtitle: "To a Sub-25min 5k & Sub-60min 10k",
-                    daysOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-                    workoutTypes: ['Interval Run', 'Upper Push', 'Tempo Run', 'Upper Pull', 'Legs & Core', 'Long Run', 'Rest'],
-                    paceGuide: {
-                        labels: ['Easy Run', 'Tempo Run', 'Interval (400m)', 'Long Run'],
-                        displayPace: ['11:00-12:00', '9:30-10:00', '2:00-2:05/lap', '11:30-12:30']
-                    },
-                    strengthWorkouts: {
-                        'Legs & Core': [
-                            { name: 'Goblet Squats', desc: 'Hold a weight at your chest. Squat down keeping your chest up and back straight.', sets: '3-4', reps: '8-12' },
-                            { name: 'Romanian Deadlifts', desc: 'Hold a barbell or dumbbells. Hinge at your hips, keeping your back straight and legs almost straight.', sets: '3-4', reps: '8-12' },
-                            { name: 'Walking Lunges', desc: 'Step forward into a lunge, then push off and step into the next lunge with the other leg.', sets: '3', reps: '10-12/leg' },
-                            { name: 'Plank', desc: 'Hold a push-up position with a flat back and engaged core.', sets: '3', reps: '45-90s' },
-                            { name: 'Hanging Knee Raises', desc: 'Hang from a bar and raise your knees towards your chest.', sets: '3', reps: '10-15' },
-                            { name: 'Calf Raises', desc: 'Stand on a flat surface and raise your heels up, then lower them back down.', sets: '3', reps: '15-20' },
-                        ],
-                        'Upper Push': [
-                            { name: 'Push-ups', desc: 'Perform standard push-ups, or modified on your knees if needed. Focus on chest and triceps.', sets: '3-4', reps: 'To failure' },
-                            { name: 'Dumbbell Bench Press', desc: 'Lie on a bench and press dumbbells up from your chest.', sets: '3-4', reps: '8-12' },
-                            { name: 'Overhead Press (Dumbbell)', desc: 'Sit or stand, pressing dumbbells from your shoulders to overhead.', sets: '3-4', reps: '8-12' },
-                            { name: 'Lateral Raises', desc: 'Stand with dumbbells at your sides. Raise them out to the side to shoulder height.', sets: '3', reps: '12-15' },
-                            { name: 'Tricep Dips (on bench)', desc: 'Place hands on a bench behind you, lower your body down and push back up.', sets: '3', reps: '10-15' },
-                        ],
-                        'Upper Pull': [
-                            { name: 'Pull-ups / Assisted Pull-ups', desc: 'Use a wide grip to pull your chin over the bar. Use a band for assistance if needed.', sets: '3-4', reps: 'To failure' },
-                            { name: 'Bent Over Rows (Dumbbell)', desc: 'Hinge at the waist with a flat back. Pull dumbbells up towards your lower chest.', sets: '3-4', reps: '8-12' },
-                            { name: 'Face Pulls', desc: 'Use a cable machine or resistance band. Pull the rope towards your face, squeezing your rear delts.', sets: '3', reps: '12-15' },
-                            { name: 'Bicep Curls (Dumbbell)', desc: 'Stand and curl dumbbells from your thighs up to your shoulders.', sets: '3', reps: '10-15' },
-                            { name: 'Reverse Flys', desc: 'Hinge forward with a flat back, arms extended. Open your arms out to the side, squeezing your shoulder blades.', sets: '3', reps: '12-15' },
-                        ]
-                    },
-                    weeklyPlan: [
-                        { intervalReps: 6, tempoMins: 20, longRunDist: 3.5 }, { intervalReps: 7, tempoMins: 25, longRunDist: 4.0 },
-                        { intervalReps: 8, tempoMins: 30, longRunDist: 4.5 }, { intervalReps: 9, tempoMins: 35, longRunDist: 5.0 },
-                        { intervalReps: 10, tempoMins: 40, longRunDist: 5.5 }, { intervalReps: 11, tempoMins: 40, longRunDist: 6.0 },
-                        { intervalReps: 12, tempoMins: 30, longRunDist: 6.5 }, { intervalReps: 8, tempoMins: 20, longRunDist: 7.0 },
-                    ],
-                    warmupStretches: [
-                        { name: "Jumping Jacks", desc: "Start with feet together and arms at your sides, then jump while spreading your legs and bringing your arms overhead. 30 seconds." },
-                        { name: "High Knees", desc: "Run in place or move forward, bringing your knees up towards your chest. Keep your core engaged. Do for 30 seconds." },
-                        { name: "Leg Swings (Forward & Sideways)", desc: "Hold onto something for balance and swing each leg forward/backward and side-to-side. 10-12 swings each direction." },
-                        { name: "Torso Twists", desc: "Stand with feet shoulder-width apart and twist your upper body from side to side. 10-12 twists each side." },
-                        { name: "Arm Circles", desc: "Extend your arms to the side and make small circles, gradually getting bigger. 10-15 circles forward and backward." }
-                    ],
-                    cooldownStretches: [
-                        { name: "Standing Quad Stretch", desc: "Stand on one leg, pull the other foot towards your glute, feeling a stretch in the front of your thigh. Hold for 30 seconds per leg." },
-                        { name: "Standing Hamstring Stretch", desc: "Extend one leg forward with the heel on the ground. Hinge at your hips and lean forward until you feel a stretch. Hold for 30 seconds per leg." },
-                        { name: "Calf Stretch", desc: "Stand facing a wall with your hands on it. Step one foot back and press the heel to the floor. Hold for 30 seconds per leg." },
-                        { name: "Glute Stretch (Pigeon Pose)", desc: "From a plank position, bring one knee forward towards the opposite hand, lowering your hips. Hold for 30 seconds per side." },
-                        { name: "Triceps Stretch", desc: "Reach one arm overhead, bend the elbow, and gently pull the elbow with the opposite hand. Hold for 30 seconds per arm." },
-                        { name: "Chest Stretch", desc: "Clasp your hands behind your back and gently pull them down and away from your body. Hold for 30 seconds." }
-                    ]
-                };
-            }
-
             const App = {
                 windowWidth: 0,
                 currentWeekIndex: 0,
                 activeChart: null,
                 workoutLogs: {},
-                planData: window.trainingPlanData,
+                planData: {},
 
                 getDOMElements() {
                     this.dom = {
                         planTitle: document.getElementById('plan-title'),
                         planSubtitle: document.getElementById('plan-subtitle'),
+                        planSelector: document.getElementById('plan-selector'),
                         carouselTrack: document.getElementById('carousel-track'),
                         dotsContainer: document.getElementById('carousel-dots'),
                         prevBtn: document.getElementById('prev-btn'),
@@ -279,20 +227,51 @@
                 },
 
                 init() {
+                    if (typeof window.trainingPlans === 'undefined') {
+                        this.displayError("Training plan data (plan.js) is missing.");
+                        return;
+                    }
                     this.getDOMElements();
+                    this.populatePlanSelector();
                     this.windowWidth = window.innerWidth;
                     this.todayIndex = (new Date().getDay() + 6) % 7;
-                    this.loadLogsFromStorage();
                     this.addEventListeners();
+
+                    const lastPlan = localStorage.getItem('selectedPlan') || 'original';
+                    this.switchPlan(lastPlan);
+                },
+
+                switchPlan(planKey) {
+                    if (!window.trainingPlans[planKey]) {
+                        console.error(`Plan "${planKey}" not found. Defaulting to first available plan.`);
+                        planKey = Object.keys(window.trainingPlans)[0];
+                    }
+                    this.planData = window.trainingPlans[planKey];
+                    localStorage.setItem('selectedPlan', planKey);
+                    this.dom.planSelector.value = planKey;
+
+                    this.currentWeekIndex = 0; // Reset to week 1
+                    this.loadLogsFromStorage();
                     this.updateHeaders();
                     this.render();
+                },
+
+                populatePlanSelector() {
+                    const plans = window.trainingPlans || {};
+                    this.dom.planSelector.innerHTML = ''; // Clear existing options
+                    for (const [key, plan] of Object.entries(plans)) {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = plan.title;
+                        this.dom.planSelector.appendChild(option);
+                    }
                 },
 
                 updateHeaders() {
                     this.dom.planTitle.textContent = this.planData.title;
                     this.dom.planSubtitle.textContent = this.planData.subtitle;
                 },
-                
+
                 loadLogsFromStorage() {
                     const key = `workoutLogs_${this.planData.id}`;
                     this.workoutLogs = JSON.parse(localStorage.getItem(key)) || {};
@@ -304,6 +283,7 @@
                 },
 
                 addEventListeners() {
+                    this.dom.planSelector.addEventListener('change', (e) => this.switchPlan(e.target.value));
                     this.dom.prevBtn.addEventListener('click', () => this.changeWeek(-1));
                     this.dom.nextBtn.addEventListener('click', () => this.changeWeek(1));
                     this.dom.dotsContainer.addEventListener('click', (e) => {
@@ -322,7 +302,7 @@
                     this.dom.cancelResetBtn.addEventListener('click', () => this.toggleModal('reset-modal', false));
                     this.dom.confirmResetBtn.addEventListener('click', () => this.resetProgress());
                 },
-                
+
                 handleResize() {
                     if (window.innerWidth === this.windowWidth) {
                         return; // Exit if width hasn't changed
@@ -346,11 +326,11 @@
                     this.renderProgressChart();
                     this.renderStretchRoutines();
                 },
-                
+
                 renderStretchRoutines() {
                     const createStretchList = (stretches) => `<ul class="divide-y divide-gray-700">${stretches.map(s => `<li class="py-3"><strong class="block text-base font-medium text-gray-100">${s.name}</strong><p class="text-sm text-gray-400">${s.desc}</p></li>`).join('')}</ul>`;
-                    this.dom.contentWarmup.innerHTML = createStretchList(this.planData.warmupStretches);
-                    this.dom.contentCooldown.innerHTML = createStretchList(this.planData.cooldownStretches);
+                    if (this.planData.warmupStretches) this.dom.contentWarmup.innerHTML = createStretchList(this.planData.warmupStretches);
+                    if (this.planData.cooldownStretches) this.dom.contentCooldown.innerHTML = createStretchList(this.planData.cooldownStretches);
                 },
 
                 renderCarousel() {
@@ -365,15 +345,24 @@
                             if (this.workoutLogs[`${index}-${i}`] && this.workoutLogs[`${index}-${i}`].completed) completedInWeek++;
                         }
                         const weeklyPercentage = (completedInWeek / this.planData.daysOfWeek.length) * 100;
+
+                        let summaryHTML;
+                        if (this.planData.id.startsWith('detailed')) {
+                            summaryHTML = `<h2 class="text-2xl font-bold text-amber-400 mb-2 text-center">Week ${index + 1}: ${weekData.summary}</h2>`;
+                        } else {
+                            summaryHTML = `
+                                <h2 class="text-2xl font-bold text-amber-400 mb-2 text-center">Week ${index + 1}</h2>
+                                <div class="w-full bg-gray-600 rounded-full h-2 mb-4"><div class="bg-green-500 h-2 rounded-full progress-bar" style="width: ${weeklyPercentage}%"></div></div>
+                                <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                    <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Intervals</p><p class="font-bold text-xl text-gray-100">${weekData.intervalReps} x 400m</p></div>
+                                    <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Tempo</p><p class="font-bold text-xl text-gray-100">${weekData.tempoMins} mins</p></div>
+                                    <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Long Run</p><p class="font-bold text-xl text-gray-100">${weekData.longRunDist} miles</p></div>
+                                    <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Strength</p><p class="font-bold text-xl text-gray-100">3 sessions</p></div>
+                                </div>`;
+                        }
+
                         slide.innerHTML = `
-                            <h2 class="text-2xl font-bold text-amber-400 mb-2 text-center">Week ${index + 1}</h2>
-                            <div class="w-full bg-gray-600 rounded-full h-2 mb-4"><div class="bg-green-500 h-2 rounded-full progress-bar" style="width: ${weeklyPercentage}%"></div></div>
-                            <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                                <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Intervals</p><p class="font-bold text-xl text-gray-100">${weekData.intervalReps} x 400m</p></div>
-                                <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Tempo</p><p class="font-bold text-xl text-gray-100">${weekData.tempoMins} mins</p></div>
-                                <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Long Run</p><p class="font-bold text-xl text-gray-100">${weekData.longRunDist} miles</p></div>
-                                <div class="bg-gray-700 p-3 rounded-lg"><p class="text-sm text-amber-200">Strength</p><p class="font-bold text-xl text-gray-100">3 sessions</p></div>
-                            </div>
+                            ${summaryHTML}
                             <div class="space-y-2 md:hidden">${this.planData.daysOfWeek.map((day, dayIndex) => this.generateDayHTML(index, dayIndex, 'mobile')).join('')}</div>
                             <div class="hidden md:grid md:grid-cols-7 md:gap-2">${this.planData.daysOfWeek.map((day, dayIndex) => this.generateDayHTML(index, dayIndex, 'desktop')).join('')}</div>
                             <div id="desktop-details-week-${index}" class="details-panel hidden md:block mt-4"></div>`;
@@ -384,11 +373,11 @@
                         this.dom.dotsContainer.appendChild(dot);
                     });
                 },
-                
+
                 generateDayHTML(weekIndex, dayIndex, viewType) {
-                    const workoutType = this.planData.workoutTypes[dayIndex];
+                    const workoutType = this.planData.id.startsWith('detailed') ? this.planData.weeklyPlan[weekIndex].workouts[dayIndex].type : this.planData.workoutTypes[dayIndex];
                     const dayName = this.planData.daysOfWeek[dayIndex];
-                    const isRest = workoutType === 'Rest';
+                    const isRest = workoutType === 'Rest' || workoutType === 'OFF' || workoutType === 'Recovery';
                     const logKey = `${weekIndex}-${dayIndex}`;
                     const isCompleted = this.workoutLogs[logKey] && this.workoutLogs[logKey].completed;
                     let bgColor = isRest ? 'bg-gray-700/80' : 'bg-gray-700/50';
@@ -415,11 +404,11 @@
                     this.dom.prevBtn.disabled = this.currentWeekIndex === 0;
                     this.dom.nextBtn.disabled = this.currentWeekIndex === this.planData.weeklyPlan.length - 1;
                 },
-                
+
                 updateProgress() {
-                    const totalWorkouts = this.planData.weeklyPlan.length * this.planData.daysOfWeek.length;
+                    const totalDays = this.planData.weeklyPlan.length * this.planData.daysOfWeek.length;
                     const completedCount = Object.values(this.workoutLogs).filter(log => log.completed).length;
-                    const totalPercentage = totalWorkouts > 0 ? (completedCount / totalWorkouts) * 100 : 0;
+                    const totalPercentage = totalDays > 0 ? (completedCount / totalDays) * 100 : 0;
                     this.dom.totalProgressBar.style.width = `${totalPercentage}%`;
                     this.dom.totalProgressText.textContent = `Overall Progress: ${Math.round(totalPercentage)}%`;
                 },
@@ -433,7 +422,15 @@
                             const [weekIndexStr, dayIndexStr] = key.split('-');
                             const weekIndex = parseInt(weekIndexStr, 10);
                             const dayIndex = parseInt(dayIndexStr, 10);
-                            if (!isNaN(weekIndex) && weekIndex < weeklyTotals.length && this.planData.workoutTypes[dayIndex].includes('Run')) {
+
+                            let workoutType;
+                            if (this.planData.id.startsWith('detailed')) {
+                                workoutType = this.planData.weeklyPlan[weekIndex].workouts[dayIndex].type;
+                            } else {
+                                workoutType = this.planData.workoutTypes[dayIndex];
+                            }
+
+                            if (!isNaN(weekIndex) && weekIndex < weeklyTotals.length && workoutType.toLowerCase().includes('run')) {
                                 weeklyTotals[weekIndex] += parseFloat(log.distance) || 0;
                             }
                         }
@@ -479,7 +476,7 @@
                     this.dom.tabProgress.classList.toggle('active', tabName === 'progress');
                     if (tabName === 'progress') this.renderProgressChart();
                 },
-                
+
                 switchStretchTab(tabName) {
                     this.dom.contentWarmup.classList.toggle('hidden', tabName !== 'warmup');
                     this.dom.contentCooldown.classList.toggle('hidden', tabName !== 'cooldown');
@@ -513,30 +510,41 @@
                 },
 
                 generateWorkoutDetailContent(dayIndex, weekIndex) {
-                    const workoutType = this.planData.workoutTypes[dayIndex];
-                    const weekData = this.planData.weeklyPlan[weekIndex];
                     const logKey = `${weekIndex}-${dayIndex}`;
                     const log = this.workoutLogs[logKey] || {};
-                    let content = '', logInputs = '';
-                    
-                    if (workoutType === 'Interval Run') {
-                        content = `<div class="space-y-3"><div><strong class="text-gray-200">Warm-up:</strong> 10-15 minutes of easy jogging.</div><div><strong class="text-gray-200">Workout:</strong> ${weekData.intervalReps} x 400 meters at goal 5k pace.</div><div><strong class="text-gray-200">Target Pace:</strong> ${this.planData.paceGuide.displayPace[2]}.</div><div><strong class="text-gray-200">Recovery:</strong> 400 meters of slow jogging or walking between each interval.</div><div><strong class="text-gray-200">Cool-down:</strong> 10-15 minutes of easy jogging.</div></div>`;
-                    } else if (workoutType === 'Tempo Run') {
-                        content = `<div class="space-y-3"><div><strong class="text-gray-200">Warm-up:</strong> 10 minutes of easy jogging.</div><div><strong class="text-gray-200">Workout:</strong> Run for ${weekData.tempoMins} minutes at a tempo pace.</div><div><strong class="text-gray-200">Target Pace:</strong> ${this.planData.paceGuide.displayPace[1]} min/mile. Should feel "comfortably hard".</div><div><strong class="text-gray-200">Cool-down:</strong> 10 minutes of easy jogging.</div></div>`;
-                    } else if (workoutType === 'Long Run') {
-                        content = `<div class="space-y-3"><div><strong class="text-gray-200">Workout:</strong> Run for ${weekData.longRunDist} miles.</div><div><strong class="text-gray-200">Target Pace:</strong> ${this.planData.paceGuide.displayPace[0]} or ${this.planData.paceGuide.displayPace[3]} min/mile. Keep it easy and conversational.</div><div><strong class="text-gray-200">Purpose:</strong> Build endurance. The goal is to cover the distance, not to run it fast.</div></div>`;
-                    } else if (['Legs & Core', 'Upper Push', 'Upper Pull'].includes(workoutType)) {
-                        const exercises = this.planData.strengthWorkouts[workoutType];
-                        content = `<ul class="divide-y divide-gray-600">${exercises.map(ex => `<li class="flex justify-between items-center py-4"><div class="flex-grow pr-4"><strong class="block text-base font-medium text-gray-100">${ex.name}</strong><p class="text-sm text-gray-400">${ex.desc}</p></div><div class="text-right flex-shrink-0 w-24"><p class="text-base font-semibold text-amber-400">${ex.sets} sets</p><p class="text-sm text-gray-400">${ex.reps} reps</p></div></li>`).join('')}</ul>`;
+                    let content = '', logInputs = '', workoutType;
+
+                    if (this.planData.id.startsWith('detailed')) {
+                        const workout = this.planData.weeklyPlan[weekIndex].workouts[dayIndex];
+                        workoutType = workout.type;
+                        content = `<p>${workout.details}</p>`;
+                        if(this.planData.strengthWorkouts[workoutType]) {
+                            const exercises = this.planData.strengthWorkouts[workoutType];
+                            content += `<ul class="divide-y divide-gray-600 mt-4">${exercises.map(ex => `<li class="flex justify-between items-center py-4"><div class="flex-grow pr-4"><strong class="block text-base font-medium text-gray-100">${ex.name}</strong><p class="text-sm text-gray-400">${ex.desc || ''}</p></div><div class="text-right flex-shrink-0 w-24"><p class="text-base font-semibold text-amber-400">${ex.sets} sets</p><p class="text-sm text-gray-400">${ex.reps} reps</p></div></li>`).join('')}</ul>`;
+                        }
                     } else {
-                        content = `<p>Rest is crucial for recovery and muscle repair. You can do some light activity like walking or stretching, but avoid strenuous exercise.</p>`;
+                        workoutType = this.planData.workoutTypes[dayIndex];
+                        const weekData = this.planData.weeklyPlan[weekIndex];
+                        if (workoutType === 'Interval Run') {
+                            content = `<div class="space-y-3"><div><strong class="text-gray-200">Warm-up:</strong> 10-15 minutes of easy jogging.</div><div><strong class="text-gray-200">Workout:</strong> ${weekData.intervalReps} x 400 meters at goal 5k pace.</div><div><strong class="text-gray-200">Target Pace:</strong> ${this.planData.paceGuide.displayPace[2]}.</div><div><strong class="text-gray-200">Recovery:</strong> 400 meters of slow jogging or walking between each interval.</div><div><strong class="text-gray-200">Cool-down:</strong> 10-15 minutes of easy jogging.</div></div>`;
+                        } else if (workoutType === 'Tempo Run') {
+                            content = `<div class="space-y-3"><div><strong class="text-gray-200">Warm-up:</strong> 10 minutes of easy jogging.</div><div><strong class="text-gray-200">Workout:</strong> Run for ${weekData.tempoMins} minutes at a tempo pace.</div><div><strong class="text-gray-200">Target Pace:</strong> ${this.planData.paceGuide.displayPace[1]} min/mile. Should feel "comfortably hard".</div><div><strong class="text-gray-200">Cool-down:</strong> 10 minutes of easy jogging.</div></div>`;
+                        } else if (workoutType === 'Long Run') {
+                            content = `<div class="space-y-3"><div><strong class="text-gray-200">Workout:</strong> Run for ${weekData.longRunDist} miles.</div><div><strong class="text-gray-200">Target Pace:</strong> ${this.planData.paceGuide.displayPace[0]} or ${this.planData.paceGuide.displayPace[3]} min/mile. Keep it easy and conversational.</div><div><strong class="text-gray-200">Purpose:</strong> Build endurance. The goal is to cover the distance, not to run it fast.</div></div>`;
+                        } else if (['Legs & Core', 'Upper Push', 'Upper Pull'].includes(workoutType)) {
+                            const exercises = this.planData.strengthWorkouts[workoutType];
+                            content = `<ul class="divide-y divide-gray-600">${exercises.map(ex => `<li class="flex justify-between items-center py-4"><div class="flex-grow pr-4"><strong class="block text-base font-medium text-gray-100">${ex.name}</strong><p class="text-sm text-gray-400">${ex.desc}</p></div><div class="text-right flex-shrink-0 w-24"><p class="text-base font-semibold text-amber-400">${ex.sets} sets</p><p class="text-sm text-gray-400">${ex.reps} reps</p></div></li>`).join('')}</ul>`;
+                        } else {
+                            content = `<p>Rest is crucial for recovery and muscle repair. You can do some light activity like walking or stretching, but avoid strenuous exercise.</p>`;
+                        }
                     }
 
-                    if (workoutType.includes('Run')) {
+                    if (workoutType.toLowerCase().includes('run') || workoutType.toLowerCase().includes('intervals')) {
                         logInputs = `<div class="grid grid-cols-2 gap-4"><div><label for="log-dist-${logKey}" class="block text-sm font-medium text-gray-300">Distance (mi)</label><input type="number" step="0.1" id="log-dist-${logKey}" value="${log.distance || ''}" class="mt-1 block w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2"></div><div><label for="log-time-${logKey}" class="block text-sm font-medium text-gray-300">Time (mm:ss)</label><input type="text" id="log-time-${logKey}" value="${log.time || ''}" class="mt-1 block w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2"></div></div>`;
                     }
 
-                    return `${content}${workoutType !== 'Rest' ? `<div class="log-section mt-6 pt-6 border-t border-gray-600"><h5 class="text-lg font-bold text-gray-100 mb-4">Log Your Workout</h5><div class="space-y-4"><div class="flex items-center"><input id="log-completed-${logKey}" type="checkbox" ${log.completed ? 'checked' : ''} class="h-5 w-5 rounded border-gray-500 text-amber-600 focus:ring-amber-500"><label for="log-completed-${logKey}" class="ml-3 block text-sm font-medium text-gray-200">Mark as Complete</label></div>${logInputs}<div><label for="log-notes-${logKey}" class="block text-sm font-medium text-gray-300">Notes</label><textarea id="log-notes-${logKey}" rows="3" class="mt-1 block w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2">${log.notes || ''}</textarea></div><div class="flex justify-end items-center"><span id="save-confirm-${logKey}" class="text-green-400 text-sm mr-4 opacity-0 transition-opacity">Saved!</span><button class="save-log-btn bg-amber-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-700 transition-colors" data-log-key="${logKey}">Save Log</button></div></div></div>` : ''}`;
+                    const isRest = workoutType === 'Rest' || workoutType === 'OFF' || workoutType === 'Recovery';
+                    return `${content}${!isRest ? `<div class="log-section mt-6 pt-6 border-t border-gray-600"><h5 class="text-lg font-bold text-gray-100 mb-4">Log Your Workout</h5><div class="space-y-4"><div class="flex items-center"><input id="log-completed-${logKey}" type="checkbox" ${log.completed ? 'checked' : ''} class="h-5 w-5 rounded border-gray-500 text-amber-600 focus:ring-amber-500"><label for="log-completed-${logKey}" class="ml-3 block text-sm font-medium text-gray-200">Mark as Complete</label></div>${logInputs}<div><label for="log-notes-${logKey}" class="block text-sm font-medium text-gray-300">Notes</label><textarea id="log-notes-${logKey}" rows="3" class="mt-1 block w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2">${log.notes || ''}</textarea></div><div class="flex justify-end items-center"><span id="save-confirm-${logKey}" class="text-green-400 text-sm mr-4 opacity-0 transition-opacity">Saved!</span><button class="save-log-btn bg-amber-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-700 transition-colors" data-log-key="${logKey}">Save Log</button></div></div></div>` : ''}`;
                 },
 
                 saveLog(logKey) {
@@ -578,6 +586,13 @@
                         content.classList.add('scale-95', 'opacity-0');
                         setTimeout(() => modal.classList.add('hidden'), 300);
                     }
+                },
+                displayError(message) {
+                    const app = document.getElementById('app');
+                    app.innerHTML = `<div class="bg-red-800 border border-red-600 text-white px-4 py-3 rounded-lg relative" role="alert">
+                        <strong class="font-bold">Error:</strong>
+                        <span class="block sm:inline">${message}</span>
+                    </div>`;
                 }
             };
 
